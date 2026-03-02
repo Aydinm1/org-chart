@@ -31,17 +31,17 @@ const Card = ({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
       <div style={{
         backgroundColor: '#1e4f5c',
         border: '2px solid #c9a43e',
         borderRadius: '16px',
-        width: '340px',
-        padding: '24px 20px 24px',
+        width: '300px',
+        padding: '20px 16px 20px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '14px',
+        gap: '12px',
         boxSizing: 'border-box',
       }}>
 
@@ -59,7 +59,7 @@ const Card = ({
           <p style={{
             color: '#ffffff',
             fontWeight: 800,
-            fontSize: '22px',
+            fontSize: '20px',
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             lineHeight: 1.25,
@@ -75,29 +75,31 @@ const Card = ({
         </div>
 
         {/* Photo */}
-        <div style={{
-          width: '110px',
-          height: '110px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: hasVisiblePhoto ? '#f0e8d8' : 'transparent',
-          flexShrink: 0,
-        }}>
-          {hasVisiblePhoto ? (
-            <img
-              src={photo}
-              alt={name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : null}
-        </div>
+        {showPhoto ? (
+          <div style={{
+            width: '96px',
+            height: '96px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: hasVisiblePhoto ? '#f0e8d8' : 'transparent',
+            flexShrink: 0,
+          }}>
+            {hasVisiblePhoto ? (
+              <img
+                src={photo}
+                alt={name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Name */}
         <div style={{ textAlign: 'center' }}>
           <p style={{
             color: '#c9a43e',
             fontWeight: 600,
-            fontSize: '17px',
+            fontSize: '15px',
             margin: '0 0 4px 0',
           }}>
             {title}
@@ -105,7 +107,7 @@ const Card = ({
           <p style={{
             color: '#c9a43e',
             fontWeight: 800,
-            fontSize: '22px',
+            fontSize: '20px',
             margin: 0,
             lineHeight: 1.2,
           }}>
@@ -115,7 +117,7 @@ const Card = ({
 
         {/* Contact */}
         {phone || email ? (
-          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '14px', lineHeight: 1.3, margin: 0 }}>
+          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '13px', lineHeight: 1.25, margin: 0 }}>
             {phone ? <p style={{ margin: 0 }}>{phone}</p> : null}
             {email ? <p style={{ margin: 0 }}>{email}</p> : null}
           </div>
@@ -133,10 +135,10 @@ const Card = ({
                 borderRadius: '999px',
                 color: '#ffffff',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: '12px',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                padding: '10px 36px',
+                padding: '9px 28px',
                 cursor: 'pointer',
               }}
             >

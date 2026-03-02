@@ -3,6 +3,7 @@ import type { CardProps } from '../components/Card'
 interface AirtableRecord {
   id: string
   fields?: {
+    [key: string]: unknown
     Role?: unknown
     Name?: unknown
     Title?: unknown
@@ -130,7 +131,7 @@ export const fetchAirtablePeopleCards = async (): Promise<GroupedCard[]> => {
 
 export const getCardsByGroup = (cards: GroupedCard[]): Record<GroupName, CardProps[]> => {
   return GROUPS.reduce<Record<GroupName, CardProps[]>>((accumulator, group) => {
-    accumulator[group] = cards
+    const cardsInGroup = cards
       .filter((card) => card.group === group)
       .sort((left, right) => {
         if (left.orderValue === null && right.orderValue === null) {
@@ -151,6 +152,10 @@ export const getCardsByGroup = (cards: GroupedCard[]): Record<GroupName, CardPro
 
         return left.name.localeCompare(right.name)
       })
+    const cardsWithPhotosCount = cardsInGroup.filter((card) => Boolean(card.photo)).length
+    const showPhotosForGroup = cardsWithPhotosCount > cardsInGroup.length / 2
+
+    accumulator[group] = cardsInGroup
       .map((card) => ({
         id: card.id,
         role: card.role,
@@ -159,7 +164,7 @@ export const getCardsByGroup = (cards: GroupedCard[]): Record<GroupName, CardPro
         name: card.name,
         phone: card.phone,
         email: card.email,
-        showPhoto: Boolean(card.photo),
+        showPhoto: showPhotosForGroup,
       }))
     return accumulator
   }, {
