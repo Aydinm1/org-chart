@@ -2,12 +2,13 @@ import { useState } from 'react'
 import ShowTeam from './ShowTeam'
 
 export interface CardProps {
+  id?: string
   role: string
   photo?: string
   title: string
   name: string
-  phone: string
-  email: string
+  phone?: string
+  email?: string
   showPhoto?: boolean
   showTeamButton?: boolean
 }
@@ -23,6 +24,7 @@ const Card = ({
   showTeamButton = true,
 }: CardProps) => {
   const [showTeamConnect, setShowTeamConnect] = useState(false)
+  const hasVisiblePhoto = showPhoto && Boolean(photo)
 
   const handleToggleTeamConnect = () => {
     setShowTeamConnect((current) => !current)
@@ -44,7 +46,16 @@ const Card = ({
       }}>
 
         {/* Header */}
-        <div style={{ textAlign: 'center', width: '100%' }}>
+        <div
+          style={{
+            textAlign: 'center',
+            width: '100%',
+            minHeight: '56px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <p style={{
             color: '#ffffff',
             fontWeight: 800,
@@ -53,28 +64,33 @@ const Card = ({
             letterSpacing: '0.08em',
             lineHeight: 1.25,
             margin: 0,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>
             {role}
           </p>
         </div>
 
         {/* Photo */}
-        {showPhoto && photo ? (
-          <div style={{
-            width: '110px',
-            height: '110px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#f0e8d8',
-            flexShrink: 0,
-          }}>
+        <div style={{
+          width: '110px',
+          height: '110px',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          backgroundColor: hasVisiblePhoto ? '#f0e8d8' : 'transparent',
+          flexShrink: 0,
+        }}>
+          {hasVisiblePhoto ? (
             <img
               src={photo}
               alt={name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
         {/* Name */}
         <div style={{ textAlign: 'center' }}>
@@ -98,10 +114,12 @@ const Card = ({
         </div>
 
         {/* Contact */}
-        <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '14px', lineHeight: 1.3, margin: 0 }}>
-          <p style={{ margin: 0 }}>{phone}</p>
-          <p style={{ margin: 0 }}>{email}</p>
-        </div>
+        {phone || email ? (
+          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '14px', lineHeight: 1.3, margin: 0 }}>
+            {phone ? <p style={{ margin: 0 }}>{phone}</p> : null}
+            {email ? <p style={{ margin: 0 }}>{email}</p> : null}
+          </div>
+        ) : null}
 
         {/* Keep slot height so card size is consistent even without the button */}
         <div style={{ minHeight: '40px', width: '100%', display: 'flex', justifyContent: 'center' }}>
