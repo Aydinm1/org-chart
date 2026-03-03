@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import ShowTeam from './ShowTeam'
-
 export interface CardProps {
   id?: string
   role: string
@@ -11,9 +8,11 @@ export interface CardProps {
   email?: string
   showPhoto?: boolean
   showTeamButton?: boolean
+  onShowMore?: (id?: string) => void
 }
 
 const Card = ({
+  id,
   role,
   photo,
   title,
@@ -22,12 +21,12 @@ const Card = ({
   email,
   showPhoto = true,
   showTeamButton = true,
+  onShowMore,
 }: CardProps) => {
-  const [showTeamConnect, setShowTeamConnect] = useState(false)
   const hasVisiblePhoto = showPhoto && Boolean(photo)
 
-  const handleToggleTeamConnect = () => {
-    setShowTeamConnect((current) => !current)
+  const handleShowMore = () => {
+    onShowMore?.(id)
   }
 
   return (
@@ -128,7 +127,7 @@ const Card = ({
           {showTeamButton ? (
             <button
               type="button"
-              onClick={handleToggleTeamConnect}
+              onClick={handleShowMore}
               style={{
                 backgroundColor: '#c9a43e',
                 border: 'none',
@@ -142,13 +141,11 @@ const Card = ({
                 cursor: 'pointer',
               }}
             >
-              Show Team
+              Show More
             </button>
           ) : null}
         </div>
       </div>
-
-      {showTeamButton && showTeamConnect && <ShowTeam />}
     </div>
   )
 }

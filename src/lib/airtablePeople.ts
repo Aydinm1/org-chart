@@ -12,6 +12,7 @@ interface AirtableRecord {
     Group?: unknown
     Order?: unknown
     Photo?: unknown
+    ['People Under']?: unknown
   }
 }
 
@@ -21,7 +22,12 @@ interface AirtableResponse {
 }
 
 export type GroupName = 'Central Boards' | 'Members & Portfolios' | 'Adjunct Members'
-export type GroupedCard = CardProps & { group: GroupName; orderValue: number | null }
+export interface PersonRecord extends CardProps {
+  id: string
+  group: string
+  orderValue: number | null
+  peopleUnderIds: string[]
+}
 
 export const GROUPS: GroupName[] = ['Central Boards', 'Members & Portfolios', 'Adjunct Members']
 
@@ -69,13 +75,19 @@ const getOrderValue = (value: unknown): number | null => {
 
 const isGroupName = (value: string): value is GroupName => GROUPS.includes(value as GroupName)
 
-const mapRecordToCard = (record: AirtableRecord): GroupedCard | null => {
-  const fields = record.fields ?? {}
-  const groupValue = getTextValue(fields.Group)
-
-  if (!isGroupName(groupValue)) {
-    return null
+const getLinkedRecordIds = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
+    return []
   }
+
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+const mapRecordToPerson = (record: AirtableRecord): PersonRecord => {
+  const fields = record.fields ?? {}
 
   return {
     id: record.id,
@@ -86,16 +98,17 @@ const mapRecordToCard = (record: AirtableRecord): GroupedCard | null => {
     phone: getTextValue(fields.Phone),
     email: getTextValue(fields.Email),
     orderValue: getOrderValue(fields.Order),
-    group: groupValue,
+    group: getTextValue(fields.Group),
+    peopleUnderIds: getLinkedRecordIds(fields['People Under']),
   }
 }
 
-export const fetchAirtablePeopleCards = async (): Promise<GroupedCard[]> => {
+export const fetchAirtablePeopleRecords = async (): Promise<PersonRecord[]> => {
   if (!AIRTABLE_PAT || !AIRTABLE_BASE_ID || !AIRTABLE_PEOPLE_TABLE) {
     throw new Error('Missing Airtable env vars. Check .env.example and set AIRTABLE_PAC, AIRTABLE_BASE_ID, AIRTABLE_PEOPLE_TABLE.')
   }
 
-  const collected: GroupedCard[] = []
+  const collected: PersonRecord[] = []
   let offset: string | undefined
 
   do {
@@ -117,10 +130,7 @@ export const fetchAirtablePeopleCards = async (): Promise<GroupedCard[]> => {
 
     const payload = (await response.json()) as AirtableResponse
     payload.records.forEach((record) => {
-      const mapped = mapRecordToCard(record)
-      if (mapped) {
-        collected.push(mapped)
-      }
+      collected.push(mapRecordToPerson(record))
     })
 
     offset = payload.offset
@@ -129,10 +139,10 @@ export const fetchAirtablePeopleCards = async (): Promise<GroupedCard[]> => {
   return collected
 }
 
-export const getCardsByGroup = (cards: GroupedCard[]): Record<GroupName, CardProps[]> => {
+export const getCardsByGroup = (people: PersonRecord[]): Record<GroupName, CardProps[]> => {
   return GROUPS.reduce<Record<GroupName, CardProps[]>>((accumulator, group) => {
-    const cardsInGroup = cards
-      .filter((card) => card.group === group)
+    const cardsInGroup = people
+      .filter((person): person is PersonRecord & { group: GroupName } => isGroupName(person.group) && person.group === group)
       .sort((left, right) => {
         if (left.orderValue === null && right.orderValue === null) {
           return left.name.localeCompare(right.name)
