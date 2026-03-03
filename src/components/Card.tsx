@@ -74,22 +74,20 @@ const Card = ({
         </div>
 
         {/* Photo */}
-        {showPhoto ? (
+        {hasVisiblePhoto ? (
           <div style={{
             width: '96px',
             height: '96px',
             borderRadius: '50%',
             overflow: 'hidden',
-            backgroundColor: hasVisiblePhoto ? '#f0e8d8' : 'transparent',
+            backgroundColor: '#f0e8d8',
             flexShrink: 0,
           }}>
-            {hasVisiblePhoto ? (
-              <img
-                src={photo}
-                alt={name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : null}
+            <img
+              src={photo}
+              alt={name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
         ) : null}
 
@@ -98,7 +96,7 @@ const Card = ({
           <p style={{
             color: '#c9a43e',
             fontWeight: 600,
-            fontSize: '15px',
+            fontSize: '18px',
             margin: '0 0 4px 0',
           }}>
             {title}
@@ -106,7 +104,7 @@ const Card = ({
           <p style={{
             color: '#c9a43e',
             fontWeight: 800,
-            fontSize: '20px',
+            fontSize: '24px',
             margin: 0,
             lineHeight: 1.2,
           }}>
@@ -116,7 +114,7 @@ const Card = ({
 
         {/* Contact */}
         {phone || email ? (
-          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '13px', lineHeight: 1.25, margin: 0 }}>
+          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '16px', lineHeight: 1.35, margin: 0 }}>
             {phone ? <p style={{ margin: 0 }}>{phone}</p> : null}
             {email ? <p style={{ margin: 0 }}>{email}</p> : null}
           </div>
@@ -141,7 +139,7 @@ const Card = ({
                 cursor: 'pointer',
               }}
             >
-              Show More
+              Show Team
             </button>
           ) : null}
         </div>
