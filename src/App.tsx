@@ -1,33 +1,34 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import background from './assets/background.png'
-import BoardSection from './components/BoardSection'
+import BoardLayout, { type BoardLayoutSection } from './components/BoardLayout'
 import PageFooter from './components/PageFooter'
 import PageHeader from './components/PageHeader'
-import { fetchAirtablePeopleRecords, getCardsByGroup, type PersonRecord } from './lib/airtablePeople'
+import { buildHomeSections, buildSectionsFromGroupIds, fetchOrgData, type OrgData } from './lib/airtablePeople'
 
-interface FellowsViewState {
-  sectionTitle: string
-  cards: PersonRecord[]
+interface TeamViewState {
+  sourcePersonName: string
+  sections: BoardLayoutSection[]
+  hasAnyValidSubgroups: boolean
 }
 
 function App() {
-  const [people, setPeople] = useState<PersonRecord[]>([])
+  const [orgData, setOrgData] = useState<OrgData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [fellowsView, setFellowsView] = useState<FellowsViewState | null>(null)
+  const [teamView, setTeamView] = useState<TeamViewState | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
-    const loadCards = async () => {
+    const loadOrgData = async () => {
       setIsLoading(true)
       setError(null)
 
       try {
-        const nextCards = await fetchAirtablePeopleRecords()
+        const nextOrgData = await fetchOrgData()
         if (!cancelled) {
-          setPeople(nextCards)
+          setOrgData(nextOrgData)
         }
       } catch (unknownError) {
         if (!cancelled) {
@@ -40,69 +41,60 @@ function App() {
       }
     }
 
-    void loadCards()
+    void loadOrgData()
 
     return () => {
       cancelled = true
     }
   }, [])
 
-  const peopleById = useMemo(() => {
-    return new Map(people.map((person) => [person.id, person]))
-  }, [people])
-
-  const cardsByGroup = useMemo(() => {
-    return getCardsByGroup(people)
-  }, [people])
-
   const handleShowMore = (id?: string) => {
-    if (!id) {
+    if (!id || !orgData) {
       return
     }
 
-    const selectedPerson = peopleById.get(id)
+    const selectedPerson = orgData.graph.peopleById.get(id)
     if (!selectedPerson) {
       return
     }
 
-    const linkedPeople = selectedPerson.peopleUnderIds
-      .map((linkedId) => peopleById.get(linkedId))
-      .filter((person): person is PersonRecord => Boolean(person))
-      .sort((left, right) => {
-        if (left.orderValue === null && right.orderValue === null) {
-          return left.name.localeCompare(right.name)
-        }
+    const subgroupSections = buildSectionsFromGroupIds(orgData.graph, selectedPerson.subgroupIds)
+    const hasAnyValidSubgroups = selectedPerson.subgroupIds.some((subgroupId) => orgData.graph.groupsById.has(subgroupId))
+    const sectionsWithConfig: BoardLayoutSection[] = subgroupSections.map((section) => ({
+      ...section,
+      showTeamButtons: false,
+    }))
 
-        if (left.orderValue === null) {
-          return 1
-        }
-
-        if (right.orderValue === null) {
-          return -1
-        }
-
-        if (left.orderValue !== right.orderValue) {
-          return left.orderValue - right.orderValue
-        }
-
-        return left.name.localeCompare(right.name)
-      })
-
-    const sectionTitleFromLinkedRecords = linkedPeople.find((person) => person.group)?.group
-    setFellowsView({
-      sectionTitle: sectionTitleFromLinkedRecords || 'Fellows',
-      cards: linkedPeople,
+    setTeamView({
+      sourcePersonName: selectedPerson.name || 'Selected Person',
+      sections: sectionsWithConfig,
+      hasAnyValidSubgroups,
     })
   }
 
+  const homeSections: BoardLayoutSection[] = orgData
+    ? buildHomeSections(orgData.graph, orgData.rootGroupId).map((section) => ({
+      ...section,
+      onShowMore: handleShowMore,
+    }))
+    : []
+
+  const isTeamViewActive = Boolean(teamView)
+  const teamSections = teamView?.sections ?? []
+  const teamSourcePersonName = teamView?.sourcePersonName ?? 'Selected Person'
+  const hasAnyValidSubgroups = teamView?.hasAnyValidSubgroups ?? false
+  const hasAnyTeamCards = teamSections.some((section) => section.cards.length > 0)
+  const noHomeSections = !isLoading && !error && orgData && homeSections.length === 0
+
   return (
     <main
-      className="flex min-h-screen w-full flex-col"
+      className="relative flex min-h-screen w-full flex-col overflow-x-clip"
       style={{
-        backgroundImage: `url(${background})`,
-        backgroundRepeat: 'repeat',
-        backgroundPosition: 'top left',
-        backgroundSize: 'auto',
+        backgroundColor: '#f0ece1',
+        backgroundImage: `radial-gradient(1200px 520px at 8% -8%, rgba(201, 164, 62, 0.2), transparent 60%), radial-gradient(920px 520px at 96% 12%, rgba(23, 57, 66, 0.14), transparent 62%), url(${background})`,
+        backgroundRepeat: 'no-repeat, no-repeat, repeat',
+        backgroundPosition: 'top left, top right, top left',
+        backgroundSize: 'auto, auto, auto',
       }}
     >
       <PageHeader />
@@ -112,45 +104,53 @@ function App() {
       {error ? (
         <div className="mx-auto w-full max-w-[1800px] px-6 pb-6 text-red-700">Airtable error: {error}</div>
       ) : null}
-      {fellowsView ? (
+
+      {isTeamViewActive ? (
         <>
-          <BoardSection
-            title={fellowsView.sectionTitle}
-            cards={fellowsView.cards}
-            showTeamButtons={false}
-            leadingAction={(
-              <button
-                type="button"
-                onClick={() => setFellowsView(null)}
-                className="rounded-full border border-[#c9a43e] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#173942] hover:bg-[#f7f4ea]"
-              >
-                Back to Org Chart
-              </button>
-            )}
+          <div className="mx-auto w-full max-w-[1780px] px-6 pt-8 sm:px-8 lg:px-10">
+            <button
+              type="button"
+              onClick={() => setTeamView(null)}
+              className="rounded-full border border-[#c9a43e] bg-[#fffaf0]/80 px-4 py-2 text-xs font-bold tracking-[0.12em] text-[#173942] uppercase shadow-[0_10px_18px_-14px_rgba(9,28,34,0.85)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#fff2d1]"
+            >
+              Back
+            </button>
+          </div>
+          <BoardLayout
+            sections={teamSections}
+            contentAlign="center"
+            cardDensity="compact"
+            showDividers={false}
           />
-          {fellowsView.cards.length === 0 ? (
+          {!hasAnyValidSubgroups ? (
             <div className="mx-auto w-full max-w-[1800px] px-6 pb-6 text-[#173942]">
-              No fellows found in linked records for this person.
+              No matching subgroup records were found for {teamSourcePersonName}.
+            </div>
+          ) : null}
+          {teamSections.length === 0 ? (
+            <div className="mx-auto w-full max-w-[1800px] px-6 pb-6 text-[#173942]">
+              No subgroups are available for {teamSourcePersonName}.
+            </div>
+          ) : null}
+          {!hasAnyTeamCards && teamSections.length > 0 ? (
+            <div className="mx-auto w-full max-w-[1800px] px-6 pb-6 text-[#173942]">
+              No people are currently listed in these subgroups.
             </div>
           ) : null}
         </>
       ) : (
         <>
-          <BoardSection
-            title="Central Boards"
-            cards={cardsByGroup['Central Boards']}
-            onShowMore={handleShowMore}
+          <BoardLayout
+            sections={homeSections}
+            contentAlign="left"
+            cardDensity="compact"
+            showDividers
           />
-          <BoardSection
-            title="Members & Portfolios"
-            cards={cardsByGroup['Members & Portfolios']}
-            onShowMore={handleShowMore}
-          />
-          <BoardSection
-            title="Adjunct Members"
-            cards={cardsByGroup['Adjunct Members']}
-            onShowMore={handleShowMore}
-          />
+          {noHomeSections ? (
+            <div className="mx-auto w-full max-w-[1800px] px-6 pb-6 text-[#173942]">
+              No child groups were found under the root group.
+            </div>
+          ) : null}
         </>
       )}
       <PageFooter />

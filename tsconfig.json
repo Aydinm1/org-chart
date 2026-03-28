@@ -23,7 +23,10 @@
     "components/**/*.tsx",
     "lib/**/*.ts",
     "lib/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "src", "dist"]
+  "exclude": ["node_modules", "dist"]
 }

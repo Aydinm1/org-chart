@@ -1,7 +1,6 @@
 import {
   andFormula,
   fetchAirtableRecords,
-  linkedRecordContainsFormula,
   orFormula,
   quoteFormulaValue,
   recordIdFormula,
@@ -27,6 +26,7 @@ interface GroupFields {
 }
 
 interface PersonFields {
+  Name?: unknown
   'Full Name'?: unknown
   Email?: unknown
   Phone?: unknown
@@ -36,18 +36,21 @@ interface PersonFields {
 interface DisplaySectionFields {
   'Display Section Label'?: unknown
   'Display Section'?: unknown
-  'Section Name'?: unknown
   Name?: unknown
   Group?: unknown
+  Groups?: unknown
   SectionOrder?: unknown
+  Order?: unknown
 }
 
 interface MembershipFields {
+  ID?: unknown
   'Membership Name'?: unknown
   Person?: unknown
   Group?: unknown
   Role?: unknown
   'Display Section'?: unknown
+  'Display Sections'?: unknown
   Order?: unknown
   'Is Chair'?: unknown
 }
@@ -56,6 +59,7 @@ interface UnitPlacementFields {
   'Parent Group'?: unknown
   'Child Group'?: unknown
   'Display Section'?: unknown
+  'Display Sections'?: unknown
   Order?: unknown
   'Use Representative Card'?: unknown
 }
@@ -69,6 +73,17 @@ const compareByOrderThenText = (leftOrder: number | null, rightOrder: number | n
   }
 
   return leftText.localeCompare(rightText)
+}
+
+const firstLinkedId = (...values: unknown[]) => {
+  for (const value of values) {
+    const ids = toLinkedRecordIds(value)
+    if (ids.length > 0) {
+      return ids[0]
+    }
+  }
+
+  return null
 }
 
 const getPhotoUrl = (value: unknown): string | null => {
@@ -103,56 +118,46 @@ const mapGroup = (record: { id: string; fields: GroupFields }): Group => {
 
 const mapPerson = (record: { id: string; fields: PersonFields }): Person => ({
   id: record.id,
-  fullName: toText(record.fields['Full Name']),
+  fullName: toText(record.fields.Name) || toText(record.fields['Full Name']),
   email: toText(record.fields.Email),
   phone: toText(record.fields.Phone),
   photo: getPhotoUrl(record.fields.Photo),
 })
 
 const mapDisplaySection = (record: { id: string; fields: DisplaySectionFields }): DisplaySection => {
-  const groupIds = toLinkedRecordIds(record.fields.Group)
   const label =
     toText(record.fields['Display Section Label']) ||
     toText(record.fields['Display Section']) ||
     toText(record.fields.Name)
-  const sectionName = toText(record.fields['Section Name'])
 
   return {
     id: record.id,
-    label: label || sectionName,
-    sectionName: sectionName || label,
-    groupId: groupIds[0] ?? null,
-    sectionOrder: toNullableNumber(record.fields.SectionOrder),
+    label,
+    sectionName: label,
+    groupId: firstLinkedId(record.fields.Group, record.fields.Groups),
+    sectionOrder: toNullableNumber(record.fields.SectionOrder) ?? toNullableNumber(record.fields.Order),
   }
 }
 
 const mapMembership = (record: { id: string; fields: MembershipFields }): Membership => {
-  const personIds = toLinkedRecordIds(record.fields.Person)
-  const groupIds = toLinkedRecordIds(record.fields.Group)
-  const displaySectionIds = toLinkedRecordIds(record.fields['Display Section'])
-
   return {
     id: record.id,
-    membershipName: toText(record.fields['Membership Name']),
-    personId: personIds[0] ?? null,
-    groupId: groupIds[0] ?? null,
+    membershipName: toText(record.fields['Membership Name']) || toText(record.fields.ID),
+    personId: firstLinkedId(record.fields.Person),
+    groupId: firstLinkedId(record.fields.Group),
     role: toText(record.fields.Role),
-    displaySectionId: displaySectionIds[0] ?? null,
+    displaySectionId: firstLinkedId(record.fields['Display Section'], record.fields['Display Sections']),
     order: toNullableNumber(record.fields.Order),
     isChair: toBoolean(record.fields['Is Chair']),
   }
 }
 
 const mapUnitPlacement = (record: { id: string; fields: UnitPlacementFields }): Omit<UnitPlacement, 'childGroup'> => {
-  const parentGroupIds = toLinkedRecordIds(record.fields['Parent Group'])
-  const childGroupIds = toLinkedRecordIds(record.fields['Child Group'])
-  const displaySectionIds = toLinkedRecordIds(record.fields['Display Section'])
-
   return {
     id: record.id,
-    parentGroupId: parentGroupIds[0] ?? null,
-    childGroupId: childGroupIds[0] ?? null,
-    displaySectionId: displaySectionIds[0] ?? null,
+    parentGroupId: firstLinkedId(record.fields['Parent Group']),
+    childGroupId: firstLinkedId(record.fields['Child Group']),
+    displaySectionId: firstLinkedId(record.fields['Display Section'], record.fields['Display Sections']),
     order: toNullableNumber(record.fields.Order),
     useRepresentativeCard: toBoolean(record.fields['Use Representative Card']),
   }
@@ -196,23 +201,29 @@ export const fetchGroupsByIds = async (groupIds: string[]): Promise<Group[]> => 
     .sort((left, right) => compareByOrderThenText(left.groupOrder, right.groupOrder, left.name, right.name))
 }
 
-export const fetchChildGroups = async (parentGroupId: string): Promise<Group[]> => {
-  const records = await fetchAirtableRecords<GroupFields>(TABLES.groups, {
-    filterByFormula: linkedRecordContainsFormula('Parent Group', parentGroupId),
-  })
+export const fetchAllGroups = async (): Promise<Group[]> => {
+  const records = await fetchAirtableRecords<GroupFields>(TABLES.groups)
 
   return records
     .map(mapGroup)
     .sort((left, right) => compareByOrderThenText(left.groupOrder, right.groupOrder, left.name, right.name))
 }
 
+export const fetchChildGroups = async (parentGroupId: string): Promise<Group[]> => {
+  const records = await fetchAirtableRecords<GroupFields>(TABLES.groups)
+
+  return records
+    .map(mapGroup)
+    .filter((group) => group.parentGroupId === parentGroupId)
+    .sort((left, right) => compareByOrderThenText(left.groupOrder, right.groupOrder, left.name, right.name))
+}
+
 export const fetchDisplaySectionsForGroup = async (groupId: string): Promise<DisplaySection[]> => {
-  const records = await fetchAirtableRecords<DisplaySectionFields>(TABLES.displaySections, {
-    filterByFormula: linkedRecordContainsFormula('Group', groupId),
-  })
+  const records = await fetchAirtableRecords<DisplaySectionFields>(TABLES.displaySections)
 
   return records
     .map(mapDisplaySection)
+    .filter((section) => section.groupId === groupId)
     .sort((left, right) => compareByOrderThenText(left.sectionOrder, right.sectionOrder, left.label, right.label))
 }
 
@@ -227,16 +238,13 @@ export const fetchPeopleByIds = async (personIds: string[]): Promise<Person[]> =
 }
 
 export const fetchMembershipsForGroup = async (groupId: string): Promise<MembershipWithPerson[]> => {
-  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships, {
-    filterByFormula: linkedRecordContainsFormula('Group', groupId),
-  })
+  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships)
 
-  const memberships = records.map(mapMembership)
+  const memberships = records.map(mapMembership).filter((membership) => membership.groupId === groupId)
   const people = await fetchPeopleByIds(memberships.map((membership) => membership.personId).filter((personId): personId is string => Boolean(personId)))
   const peopleById = new Map(people.map((person) => [person.id, person]))
 
-  return records
-    .map(mapMembership)
+  return memberships
     .map((membership) => ({
       ...membership,
       person: membership.personId ? peopleById.get(membership.personId) ?? null : null,
@@ -252,11 +260,9 @@ export const fetchMembershipsForGroup = async (groupId: string): Promise<Members
 }
 
 export const fetchUnitPlacementsForParentGroup = async (parentGroupId: string): Promise<UnitPlacement[]> => {
-  const records = await fetchAirtableRecords<UnitPlacementFields>(TABLES.unitPlacements, {
-    filterByFormula: linkedRecordContainsFormula('Parent Group', parentGroupId),
-  })
+  const records = await fetchAirtableRecords<UnitPlacementFields>(TABLES.unitPlacements)
 
-  const placements = records.map(mapUnitPlacement)
+  const placements = records.map(mapUnitPlacement).filter((placement) => placement.parentGroupId === parentGroupId)
   const childGroups = await fetchGroupsByIds(
     placements.map((placement) => placement.childGroupId).filter((groupId): groupId is string => Boolean(groupId)),
   )
@@ -278,12 +284,11 @@ export const fetchUnitPlacementsForParentGroup = async (parentGroupId: string): 
 }
 
 export const fetchRepresentativeChairMembership = async (groupId: string): Promise<MembershipWithPerson | null> => {
-  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships, {
-    filterByFormula: andFormula(linkedRecordContainsFormula('Group', groupId), '{Is Chair}'),
-  })
+  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships)
 
   const memberships = records
     .map(mapMembership)
+    .filter((membership) => membership.groupId === groupId && membership.isChair)
     .sort((left, right) => compareByOrderThenText(left.order, right.order, left.membershipName || left.role, right.membershipName || right.role))
   const chairMembership = memberships[0]
 

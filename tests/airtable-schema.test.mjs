@@ -28,10 +28,13 @@ const expectedSchema = {
   },
   [TABLES.people]: {
     fields: [
-      { name: 'Full Name', type: 'singleLineText' },
       { name: 'Email', type: 'email' },
       { name: 'Phone', type: 'phoneNumber' },
       { name: 'Photo', type: 'multipleAttachments' },
+    ],
+    oneOfFields: [
+      { name: 'Full Name', type: 'singleLineText' },
+      { name: 'Name', type: 'singleLineText' },
     ],
   },
   [TABLES.displaySections]: {
@@ -41,18 +44,17 @@ const expectedSchema = {
       { name: 'Name', type: 'singleLineText' },
     ],
     fields: [
-      { name: 'Section Name', type: 'singleLineText' },
-      { name: 'Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups },
-      { name: 'SectionOrder', type: 'number' },
+      { name: 'Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups, aliases: ['Groups'] },
+      { name: 'SectionOrder', type: 'number', aliases: ['Order'] },
     ],
   },
   [TABLES.memberships]: {
     fields: [
-      { name: 'Membership Name', type: 'singleLineText' },
+      { name: 'Membership Name', type: 'singleLineText', aliases: ['ID'], aliasTypes: { ID: ['singleLineText', 'formula'] } },
       { name: 'Person', type: 'multipleRecordLinks', linkedTableName: TABLES.people },
       { name: 'Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups },
       { name: 'Role', type: 'singleLineText' },
-      { name: 'Display Section', type: 'multipleRecordLinks', linkedTableName: TABLES.displaySections },
+      { name: 'Display Section', type: 'multipleRecordLinks', linkedTableName: TABLES.displaySections, aliases: ['Display Sections'] },
       { name: 'Order', type: 'number' },
       { name: 'Is Chair', type: 'checkbox' },
     ],
@@ -61,7 +63,7 @@ const expectedSchema = {
     fields: [
       { name: 'Parent Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups },
       { name: 'Child Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups },
-      { name: 'Display Section', type: 'multipleRecordLinks', linkedTableName: TABLES.displaySections },
+      { name: 'Display Section', type: 'multipleRecordLinks', linkedTableName: TABLES.displaySections, aliases: ['Display Sections'] },
       { name: 'Order', type: 'number' },
       { name: 'Use Representative Card', type: 'checkbox' },
     ],
@@ -99,6 +101,7 @@ const fetchBaseMetadata = async () => {
 const getTableByName = (tables, tableName) => tables.find((table) => table.name === tableName)
 
 const getFieldByName = (table, fieldName) => table.fields.find((field) => field.name === fieldName)
+const getFieldByNames = (table, fieldNames) => fieldNames.map((fieldName) => getFieldByName(table, fieldName)).find(Boolean)
 
 test('Airtable base contains the required tables', async () => {
   const metadata = await fetchBaseMetadata()
@@ -123,15 +126,20 @@ test('Airtable schema matches required field names and types', async () => {
     }
 
     for (const expectedField of definition.fields ?? []) {
-      const field = getFieldByName(table, expectedField.name)
+      const candidateNames = [expectedField.name, ...(expectedField.aliases ?? [])]
+      const field = getFieldByNames(table, candidateNames)
       if (!field) {
-        issues.push(`Missing field "${expectedField.name}" on table "${tableName}".`)
+        issues.push(`Missing field "${expectedField.name}" on table "${tableName}". Accepted names: ${candidateNames.join(', ')}.`)
         continue
       }
 
-      if (field.type !== expectedField.type) {
+      const acceptedTypes = field.name === expectedField.name
+        ? [expectedField.type]
+        : expectedField.aliasTypes?.[field.name] ?? [expectedField.type]
+
+      if (!acceptedTypes.includes(field.type)) {
         issues.push(
-          `Field "${tableName}.${expectedField.name}" should be type "${expectedField.type}", received "${field.type}".`,
+          `Field "${tableName}.${expectedField.name}" should be type "${acceptedTypes.join(' or ')}", received "${field.type}".`,
         )
       }
 

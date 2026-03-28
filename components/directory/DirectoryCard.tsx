@@ -5,61 +5,67 @@ interface DirectoryCardProps {
   card: DirectoryCardViewModel
 }
 
-const cardBodyClasses =
-  'directory-card flex h-full min-h-[310px] flex-col rounded-[22px] border border-[#d7c497] bg-[#1f5060] px-5 py-5 text-left shadow-[0_18px_34px_-24px_rgba(9,28,34,0.95)] transition-all duration-200'
-
 export default function DirectoryCard({ card }: DirectoryCardProps) {
-  const content = (
-    <article
-      className={`${cardBodyClasses} ${
-        card.destinationGroupId ? 'hover:-translate-y-1 hover:shadow-[0_24px_42px_-24px_rgba(9,28,34,0.95)]' : ''
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="m-0 text-[0.7rem] font-semibold tracking-[0.2em] text-[#f6e8bf] uppercase">
-            {card.type === 'group' ? 'Group' : card.type === 'representative-group' ? 'Representative Group' : 'Person'}
-          </p>
-          {card.badge ? <p className="mt-2 text-sm font-medium text-[#d8b651]">{card.badge}</p> : null}
-        </div>
-        {card.destinationGroupId ? (
-          <span className="rounded-full border border-white/20 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-white/78 uppercase">
-            Open
-          </span>
-        ) : null}
-      </div>
+  const roleText = card.type === 'representative-group'
+    ? card.subtitle || 'Representative'
+    : card.type === 'group'
+      ? 'Group'
+      : card.subtitle || 'Member'
+  const titleText = card.type === 'representative-group'
+    ? card.badge || card.destinationGroupLabel || 'Group'
+    : card.type === 'group'
+      ? card.badge || 'Directory Unit'
+      : card.badge || ''
+  const actionText = card.destinationGroupId ? 'Open Group' : 'View Person'
 
-      <div className="mt-5 flex items-start gap-4">
+  const content = (
+    <article className="directory-card w-full max-w-[260px]">
+      <div className="relative flex h-full min-h-[386px] flex-col items-center rounded-[18px] border-2 border-[#c9a43e] bg-[#1e4f5c] px-4 py-5 text-center shadow-[0_16px_30px_-22px_rgba(9,28,34,1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_38px_-24px_rgba(9,28,34,0.95)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-10 rounded-b-full bg-gradient-to-b from-white/10 to-transparent" />
+
+        <header className="flex min-h-[52px] items-center justify-center">
+          <p
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+            className="overflow-hidden text-ellipsis text-[0.98rem] font-semibold leading-tight tracking-[0.04em] text-white uppercase"
+          >
+            {roleText}
+          </p>
+        </header>
+
         {card.image ? (
-          <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full border border-[#f6e9c7]/35 bg-[#f0e8d8]">
+          <div className="mt-3 h-[88px] w-[88px] shrink-0 overflow-hidden rounded-full bg-[#f0e8d8] ring-2 ring-[#f6e9c7]/35">
             <img src={card.image} alt={card.title} className="h-full w-full object-cover" />
           </div>
         ) : (
-          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border border-[#f6e9c7]/35 bg-[#2b6679] text-xl font-bold text-[#f4e5b4]">
+          <div className="mt-3 flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full bg-[#f0e8d8] text-2xl font-bold text-[#1e4f5c] ring-2 ring-[#f6e9c7]/35">
             {card.title.slice(0, 2).toUpperCase()}
           </div>
         )}
 
-        <div className="min-w-0">
-          {card.subtitle ? <p className="m-0 text-sm font-medium text-[#d8b651]">{card.subtitle}</p> : null}
-          <h2 className="mt-1 text-[1.35rem] leading-tight font-bold text-white">{card.title}</h2>
+        <div className="mt-3 text-center">
+          {titleText ? <p className="m-0 text-[0.96rem] font-medium text-[#d2b15a]">{titleText}</p> : null}
+          <p className="m-0 text-[1.4rem] font-bold leading-tight text-[#d8b651]">{card.title}</p>
         </div>
-      </div>
 
-      {card.email || card.phone ? (
-        <div className="mt-5 space-y-1 text-sm leading-relaxed text-white/88">
+        {card.email || card.phone ? (
+          <div className="mt-3 text-center text-[0.95rem] leading-snug text-white/92">
           {card.phone ? <p className="m-0">{card.phone}</p> : null}
           {card.email ? <p className="m-0 break-all">{card.email}</p> : null}
-        </div>
-      ) : null}
+          </div>
+        ) : null}
 
-      {card.destinationGroupId ? (
-        <div className="mt-auto pt-6">
-          <p className="m-0 text-xs font-semibold tracking-[0.12em] text-[#f5e8c0] uppercase">
-            Opens the {card.destinationGroupLabel ?? 'group'} page
-          </p>
+        <div className="mt-auto flex min-h-10 w-full items-end justify-center pt-3">
+          {card.destinationGroupId ? (
+            <span className="rounded-full bg-[#c9a43e] px-6 py-2 text-[11px] font-bold tracking-[0.08em] text-white uppercase transition-all duration-200">
+              {actionText}
+            </span>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </article>
   )
 

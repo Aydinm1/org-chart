@@ -30,121 +30,58 @@ const Card = ({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
-      <div style={{
-        backgroundColor: '#1e4f5c',
-        border: '2px solid #c9a43e',
-        borderRadius: '16px',
-        width: '300px',
-        padding: '20px 16px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '12px',
-        boxSizing: 'border-box',
-      }}>
+    <article className="card-elevated w-full max-w-[260px]">
+      <div className="relative flex h-full min-h-[386px] flex-col items-center rounded-[18px] border-2 border-[#c9a43e] bg-[#1e4f5c] px-4 py-5 text-center shadow-[0_16px_30px_-22px_rgba(9,28,34,1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_38px_-24px_rgba(9,28,34,0.95)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-10 rounded-b-full bg-gradient-to-b from-white/10 to-transparent" />
 
-        {/* Header */}
-        <div
-          style={{
-            textAlign: 'center',
-            width: '100%',
-            minHeight: '56px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <p style={{
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '20px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            lineHeight: 1.25,
-            margin: 0,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}>
+        <header className="flex min-h-[52px] items-center justify-center">
+          <p
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+            className="overflow-hidden text-ellipsis text-[0.98rem] font-semibold leading-tight tracking-[0.04em] text-white uppercase"
+          >
             {role}
           </p>
-        </div>
+        </header>
 
-        {/* Photo */}
         {hasVisiblePhoto ? (
-          <div style={{
-            width: '96px',
-            height: '96px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#f0e8d8',
-            flexShrink: 0,
-          }}>
+          <div className="mt-3 h-[88px] w-[88px] shrink-0 overflow-hidden rounded-full bg-[#f0e8d8] ring-2 ring-[#f6e9c7]/35">
             <img
               src={photo}
               alt={name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="h-full w-full object-cover"
             />
           </div>
         ) : null}
 
-        {/* Name */}
-        <div style={{ textAlign: 'center' }}>
-          <p style={{
-            color: '#c9a43e',
-            fontWeight: 600,
-            fontSize: '18px',
-            margin: '0 0 4px 0',
-          }}>
-            {title}
-          </p>
-          <p style={{
-            color: '#c9a43e',
-            fontWeight: 800,
-            fontSize: '24px',
-            margin: 0,
-            lineHeight: 1.2,
-          }}>
-            {name}
-          </p>
+        <div className="mt-3 text-center">
+          <p className="m-0 text-[0.96rem] font-medium text-[#d2b15a]">{title}</p>
+          <p className="m-0 text-[1.4rem] font-bold leading-tight text-[#d8b651]">{name}</p>
         </div>
 
-        {/* Contact */}
         {phone || email ? (
-          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '16px', lineHeight: 1.35, margin: 0 }}>
-            {phone ? <p style={{ margin: 0 }}>{phone}</p> : null}
-            {email ? <p style={{ margin: 0 }}>{email}</p> : null}
+          <div className="mt-3 text-center text-[0.95rem] leading-snug text-white/92">
+            {phone ? <p className="m-0">{phone}</p> : null}
+            {email ? <p className="m-0">{email}</p> : null}
           </div>
         ) : null}
 
-        {/* Keep slot height so card size is consistent even without the button */}
-        <div style={{ minHeight: '40px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <div className="mt-auto flex min-h-10 w-full items-end justify-center pt-3">
           {showTeamButton ? (
             <button
               type="button"
               onClick={handleShowMore}
-              style={{
-                backgroundColor: '#c9a43e',
-                border: 'none',
-                borderRadius: '999px',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '12px',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                padding: '9px 28px',
-                cursor: 'pointer',
-              }}
+              className="rounded-full bg-[#c9a43e] px-6 py-2 text-[11px] font-bold tracking-[0.08em] text-white uppercase transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#d8b651] hover:shadow-[0_10px_16px_-10px_rgba(9,28,34,0.85)]"
             >
               Show Team
             </button>
           ) : null}
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 

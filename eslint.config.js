@@ -16,7 +16,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['components/directory/DirectoryCard.tsx'],
+    files: ['components/directory/DirectoryCard.tsx', 'components/directory/PageGraphic.tsx'],
     rules: {
       '@next/next/no-img-element': 'off',
     },
