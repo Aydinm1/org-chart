@@ -10,13 +10,7 @@ interface GroupPageProps {
 
 export default async function GroupPage({ params }: GroupPageProps) {
   const { groupId } = await params
-  let pageModel = null
-
-  try {
-    pageModel = await loadGroupPage(groupId)
-  } catch {
-    notFound()
-  }
+  const pageModel = await loadGroupPage(groupId)
 
   if (!pageModel) {
     notFound()

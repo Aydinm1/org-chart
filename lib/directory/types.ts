@@ -29,6 +29,8 @@ export interface DirectorySectionViewModel {
 export interface GroupPageViewModel {
   group: Group
   parentGroup: Group | null
+  backHref: string
+  backLabel: string
   sections: DirectorySectionViewModel[]
 }
 

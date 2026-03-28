@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import background from '../../src/assets/background.png'
 import DirectoryBackButton from './DirectoryBackButton'
 import PageGraphic from './PageGraphic'
 
@@ -25,7 +24,7 @@ export default function DirectoryShell({
       className="relative flex min-h-screen w-full flex-col overflow-x-clip"
       style={{
         backgroundColor: '#f0ece1',
-        backgroundImage: `radial-gradient(1200px 520px at 8% -8%, rgba(201, 164, 62, 0.2), transparent 60%), radial-gradient(920px 520px at 96% 12%, rgba(23, 57, 66, 0.14), transparent 62%), url(${background.src})`,
+        backgroundImage: "radial-gradient(1200px 520px at 8% -8%, rgba(201, 164, 62, 0.2), transparent 60%), radial-gradient(920px 520px at 96% 12%, rgba(23, 57, 66, 0.14), transparent 62%), url('/assets/background.png')",
         backgroundRepeat: 'no-repeat, no-repeat, repeat',
         backgroundPosition: 'top left, top right, top left',
         backgroundSize: 'auto, auto, auto',

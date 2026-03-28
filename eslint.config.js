@@ -3,7 +3,7 @@ import globals from 'globals'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '.next', 'src/**']),
+  globalIgnores(['dist', '.next']),
   ...nextVitals,
   {
     files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],

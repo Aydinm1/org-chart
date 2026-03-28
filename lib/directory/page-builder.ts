@@ -3,13 +3,14 @@ import {
   fetchDisplaySectionsForGroup,
   fetchGroupById,
   fetchGroupByName,
-  fetchRepresentativeChairMembership,
   fetchRepresentativeChairMemberships,
   fetchUnitPlacementsForParentGroup,
   fetchMembershipsForGroup,
 } from '../airtable/repository'
 import type { MembershipWithPerson, UnitPlacement } from '../airtable/types'
 import type { DirectoryCardViewModel, DirectorySectionViewModel, GroupPageViewModel, RootNavigationViewModel } from './types'
+
+const ROOT_GROUP_NAME = 'Midwest Institutions'
 
 const compareCards = (left: DirectoryCardViewModel, right: DirectoryCardViewModel) => {
   const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER
@@ -111,7 +112,15 @@ const resolveGroup = async (groupIdOrName: string) => {
   return groupIdOrName.startsWith('rec') ? null : fetchGroupById(groupIdOrName)
 }
 
-export const loadRootNavigation = async (rootGroupName = 'Midwest Institutions'): Promise<RootNavigationViewModel> => {
+const buildBackHref = (parentGroupId: string | null, grandparentGroupId: string | null) => {
+  if (!parentGroupId || grandparentGroupId === null) {
+    return '/'
+  }
+
+  return `/groups/${parentGroupId}`
+}
+
+export const loadRootNavigation = async (rootGroupName = ROOT_GROUP_NAME): Promise<RootNavigationViewModel> => {
   const rootGroup = await fetchGroupByName(rootGroupName)
 
   if (!rootGroup) {
@@ -205,6 +214,8 @@ export const loadGroupPage = async (groupIdOrName: string): Promise<GroupPageVie
   return {
     group,
     parentGroup,
+    backHref: buildBackHref(parentGroup?.id ?? null, parentGroup?.parentGroupId ?? null),
+    backLabel: 'Back',
     sections,
   }
 }

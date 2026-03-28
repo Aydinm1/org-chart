@@ -1,5 +1,4 @@
 import {
-  andFormula,
   fetchAirtableRecords,
   orFormula,
   quoteFormulaValue,
@@ -173,6 +172,32 @@ const buildRecordIdFilter = (recordIds: string[]) => {
   return orFormula(...uniqueIds.map((recordId) => recordIdFormula(recordId)))
 }
 
+const filterMappedRecords = async <TFields, TValue>(
+  tableName: string,
+  mapRecord: (record: { id: string; fields: TFields }) => TValue,
+  predicate: (value: TValue) => boolean,
+  compareValues: (left: TValue, right: TValue) => number,
+) => {
+  // Linked-record formulas have been unreliable against this Airtable base, so
+  // relationship lookups normalize records first and then filter by record id.
+  const records = await fetchAirtableRecords<TFields>(tableName)
+
+  return records
+    .map(mapRecord)
+    .filter(predicate)
+    .sort(compareValues)
+}
+
+const hydrateMembershipPeople = async (memberships: Membership[]): Promise<MembershipWithPerson[]> => {
+  const people = await fetchPeopleByIds(memberships.map((membership) => membership.personId).filter((personId): personId is string => Boolean(personId)))
+  const peopleById = new Map(people.map((person) => [person.id, person]))
+
+  return memberships.map((membership) => ({
+    ...membership,
+    person: membership.personId ? peopleById.get(membership.personId) ?? null : null,
+  }))
+}
+
 export const fetchGroupById = async (groupId: string): Promise<Group | null> => {
   const records = await fetchAirtableRecords<GroupFields>(TABLES.groups, {
     filterByFormula: recordIdFormula(groupId),
@@ -210,21 +235,21 @@ export const fetchAllGroups = async (): Promise<Group[]> => {
 }
 
 export const fetchChildGroups = async (parentGroupId: string): Promise<Group[]> => {
-  const records = await fetchAirtableRecords<GroupFields>(TABLES.groups)
-
-  return records
-    .map(mapGroup)
-    .filter((group) => group.parentGroupId === parentGroupId)
-    .sort((left, right) => compareByOrderThenText(left.groupOrder, right.groupOrder, left.name, right.name))
+  return filterMappedRecords(
+    TABLES.groups,
+    mapGroup,
+    (group) => group.parentGroupId === parentGroupId,
+    (left, right) => compareByOrderThenText(left.groupOrder, right.groupOrder, left.name, right.name),
+  )
 }
 
 export const fetchDisplaySectionsForGroup = async (groupId: string): Promise<DisplaySection[]> => {
-  const records = await fetchAirtableRecords<DisplaySectionFields>(TABLES.displaySections)
-
-  return records
-    .map(mapDisplaySection)
-    .filter((section) => section.groupId === groupId)
-    .sort((left, right) => compareByOrderThenText(left.sectionOrder, right.sectionOrder, left.label, right.label))
+  return filterMappedRecords(
+    TABLES.displaySections,
+    mapDisplaySection,
+    (section) => section.groupId === groupId,
+    (left, right) => compareByOrderThenText(left.sectionOrder, right.sectionOrder, left.label, right.label),
+  )
 }
 
 export const fetchPeopleByIds = async (personIds: string[]): Promise<Person[]> => {
@@ -238,31 +263,31 @@ export const fetchPeopleByIds = async (personIds: string[]): Promise<Person[]> =
 }
 
 export const fetchMembershipsForGroup = async (groupId: string): Promise<MembershipWithPerson[]> => {
-  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships)
+  const memberships = await filterMappedRecords(
+    TABLES.memberships,
+    mapMembership,
+    (membership) => membership.groupId === groupId,
+    (left, right) => compareByOrderThenText(left.order, right.order, left.membershipName || left.role, right.membershipName || right.role),
+  )
+  const membershipsWithPeople = await hydrateMembershipPeople(memberships)
 
-  const memberships = records.map(mapMembership).filter((membership) => membership.groupId === groupId)
-  const people = await fetchPeopleByIds(memberships.map((membership) => membership.personId).filter((personId): personId is string => Boolean(personId)))
-  const peopleById = new Map(people.map((person) => [person.id, person]))
-
-  return memberships
-    .map((membership) => ({
-      ...membership,
-      person: membership.personId ? peopleById.get(membership.personId) ?? null : null,
-    }))
-    .sort((left, right) =>
-      compareByOrderThenText(
-        left.order,
-        right.order,
-        left.person?.fullName || left.membershipName || left.role,
-        right.person?.fullName || right.membershipName || right.role,
-      ),
-    )
+  return membershipsWithPeople.sort((left, right) =>
+    compareByOrderThenText(
+      left.order,
+      right.order,
+      left.person?.fullName || left.membershipName || left.role,
+      right.person?.fullName || right.membershipName || right.role,
+    ),
+  )
 }
 
 export const fetchUnitPlacementsForParentGroup = async (parentGroupId: string): Promise<UnitPlacement[]> => {
-  const records = await fetchAirtableRecords<UnitPlacementFields>(TABLES.unitPlacements)
-
-  const placements = records.map(mapUnitPlacement).filter((placement) => placement.parentGroupId === parentGroupId)
+  const placements = await filterMappedRecords(
+    TABLES.unitPlacements,
+    mapUnitPlacement,
+    (placement) => placement.parentGroupId === parentGroupId,
+    (left, right) => compareByOrderThenText(left.order, right.order, left.childGroupId || '', right.childGroupId || ''),
+  )
   const childGroups = await fetchGroupsByIds(
     placements.map((placement) => placement.childGroupId).filter((groupId): groupId is string => Boolean(groupId)),
   )
@@ -284,34 +309,39 @@ export const fetchUnitPlacementsForParentGroup = async (parentGroupId: string): 
 }
 
 export const fetchRepresentativeChairMembership = async (groupId: string): Promise<MembershipWithPerson | null> => {
-  const records = await fetchAirtableRecords<MembershipFields>(TABLES.memberships)
-
-  const memberships = records
-    .map(mapMembership)
-    .filter((membership) => membership.groupId === groupId && membership.isChair)
-    .sort((left, right) => compareByOrderThenText(left.order, right.order, left.membershipName || left.role, right.membershipName || right.role))
-  const chairMembership = memberships[0]
-
-  if (!chairMembership || !chairMembership.personId) {
-    return chairMembership ? { ...chairMembership, person: null } : null
-  }
-
-  const people = await fetchPeopleByIds([chairMembership.personId])
-
-  return {
-    ...chairMembership,
-    person: people[0] ?? null,
-  }
+  const representatives = await fetchRepresentativeChairMemberships([groupId])
+  return representatives.get(groupId) ?? null
 }
 
 export const fetchRepresentativeChairMemberships = async (groupIds: string[]): Promise<Map<string, MembershipWithPerson>> => {
   const uniqueGroupIds = [...new Set(groupIds)].filter(Boolean)
-  const representativeEntries = await Promise.all(
-    uniqueGroupIds.map(async (groupId) => {
-      const representative = await fetchRepresentativeChairMembership(groupId)
-      return representative ? ([groupId, representative] as const) : null
-    }),
+  if (uniqueGroupIds.length === 0) {
+    return new Map()
+  }
+
+  const groupIdSet = new Set(uniqueGroupIds)
+  const chairMemberships = await filterMappedRecords(
+    TABLES.memberships,
+    mapMembership,
+    (membership) => {
+      const { groupId } = membership
+      return membership.isChair && typeof groupId === 'string' && groupIdSet.has(groupId)
+    },
+    (left, right) => compareByOrderThenText(left.order, right.order, left.membershipName || left.role, right.membershipName || right.role),
   )
 
-  return new Map(representativeEntries.filter((entry): entry is readonly [string, MembershipWithPerson] => Boolean(entry)))
+  const firstChairByGroupId = new Map<string, Membership>()
+  for (const membership of chairMemberships) {
+    if (membership.groupId && !firstChairByGroupId.has(membership.groupId)) {
+      firstChairByGroupId.set(membership.groupId, membership)
+    }
+  }
+
+  const hydratedMemberships = await hydrateMembershipPeople([...firstChairByGroupId.values()])
+
+  return new Map(
+    hydratedMemberships
+      .filter((membership): membership is MembershipWithPerson & { groupId: string } => Boolean(membership.groupId))
+      .map((membership) => [membership.groupId, membership] as const),
+  )
 }

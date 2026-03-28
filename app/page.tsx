@@ -1,19 +1,21 @@
 import DirectoryCardGrid from '../components/directory/DirectoryCardGrid'
 import DirectoryShell from '../components/directory/DirectoryShell'
+import DirectorySurfacePanel from '../components/directory/DirectorySurfacePanel'
 import { loadRootNavigation } from '../lib/directory/page-builder'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  const rootNavigationResult = await loadRootNavigation()
-    .then((data) => ({ data, error: null }))
-    .catch((error: unknown) => ({
-      data: null,
-      error: error instanceof Error ? error.message : 'The directory could not be loaded.',
-    }))
+  let rootNavigation = null
+  let loadError = 'The directory could not be loaded.'
 
-  if (rootNavigationResult.data) {
-    const { data: rootNavigation } = rootNavigationResult
+  try {
+    rootNavigation = await loadRootNavigation()
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : loadError
+  }
+
+  if (rootNavigation) {
     return (
       <DirectoryShell
         title={rootNavigation.rootGroup.name}
@@ -21,24 +23,21 @@ export default async function HomePage() {
         description="Browse the top-level units below Midwest Institutions."
       >
         <div className="mx-auto w-full max-w-[1780px] px-6 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-14">
-          <div className="board-surface relative overflow-hidden rounded-[28px] border border-[#decfa9] bg-[#F8F4EA]/92 px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fff7e6]/75 to-transparent" />
-            <div className="relative space-y-12 sm:space-y-14">
-              <section className="w-full">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">Institutions</h2>
-                  </div>
+          <DirectorySurfacePanel>
+            <section className="w-full">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">Institutions</h2>
                 </div>
-                <div className="mt-7">
-                  <DirectoryCardGrid cards={rootNavigation.cards} />
-                </div>
-              </section>
-              {rootNavigation.cards.length === 0 ? (
-                <p className="text-sm text-[#173942]/78">No child groups were found under the configured root group.</p>
-              ) : null}
-            </div>
-          </div>
+              </div>
+              <div className="mt-7">
+                <DirectoryCardGrid cards={rootNavigation.cards} />
+              </div>
+            </section>
+            {rootNavigation.cards.length === 0 ? (
+              <p className="text-sm text-[#173942]/78">No child groups were found under the configured root group.</p>
+            ) : null}
+          </DirectorySurfacePanel>
         </div>
       </DirectoryShell>
     )
@@ -51,7 +50,7 @@ export default async function HomePage() {
       description="The root directory page could not be assembled from Airtable."
     >
       <div className="surface-panel rounded-[28px] border border-[#d9cca7] bg-[#f8f4ea]/92 px-6 py-8 text-sm text-[#173942]/82 sm:px-8 sm:py-10 lg:px-10">
-        {rootNavigationResult.error}
+        {loadError}
       </div>
     </DirectoryShell>
   )
