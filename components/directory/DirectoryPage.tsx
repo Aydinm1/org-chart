@@ -8,7 +8,11 @@ interface DirectoryPageProps {
 }
 
 export default function DirectoryPage({ page }: DirectoryPageProps) {
-  const backHref = page.parentGroup ? `/groups/${page.parentGroup.id}` : '/'
+  const backHref = page.parentGroup
+    ? page.parentGroup.parentGroupId === null
+      ? '/'
+      : `/groups/${page.parentGroup.id}`
+    : '/'
   const hasAnyCards = page.sections.some((section) => section.cards.length > 0)
 
   return (
