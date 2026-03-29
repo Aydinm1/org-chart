@@ -46,6 +46,7 @@ const expectedSchema = {
     fields: [
       { name: 'Group', type: 'multipleRecordLinks', linkedTableName: TABLES.groups, aliases: ['Groups'] },
       { name: 'SectionOrder', type: 'number', aliases: ['Order'] },
+      { name: 'Show Title?', type: 'checkbox' },
     ],
   },
   [TABLES.memberships]: {
@@ -97,8 +98,6 @@ const fetchBaseMetadata = async () => {
 
   return response.json()
 }
-
-const getTableByName = (tables, tableName) => tables.find((table) => table.name === tableName)
 
 const getFieldByName = (table, fieldName) => table.fields.find((field) => field.name === fieldName)
 const getFieldByNames = (table, fieldNames) => fieldNames.map((fieldName) => getFieldByName(table, fieldName)).find(Boolean)

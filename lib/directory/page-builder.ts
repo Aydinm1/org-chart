@@ -206,6 +206,7 @@ export const loadGroupPage = async (groupIdOrName: string): Promise<GroupPageVie
     sections.push({
       id: section.id,
       title: section.label,
+      showTitle: section.showTitle,
       order: section.sectionOrder,
       cards: [...personCards, ...placementCards.filter((card): card is DirectoryCardViewModel => Boolean(card))].sort(compareCards),
     })

@@ -1,18 +1,27 @@
-import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextPlugin from '@next/eslint-plugin-next'
 import globals from 'globals'
 import { defineConfig, globalIgnores } from 'eslint/config'
+import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores(['dist', '.next']),
-  ...nextVitals,
+  globalIgnores(['dist', '.next', 'next-env.d.ts']),
+  ...tseslint.configs.recommended,
   {
-    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
+    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
+    },
     languageOptions: {
       ecmaVersion: 2020,
+      sourceType: 'module',
       globals: {
         ...globals.browser,
         ...globals.node,
       },
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
   {

@@ -8,11 +8,13 @@ interface DirectorySectionProps {
 export default function DirectorySection({ section }: DirectorySectionProps) {
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">{section.title}</h2>
+      {section.showTitle ? (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">{section.title}</h2>
+          </div>
         </div>
-      </div>
+      ) : null}
       {section.cards.length > 0 ? (
         <DirectoryCardGrid cards={section.cards} />
       ) : (

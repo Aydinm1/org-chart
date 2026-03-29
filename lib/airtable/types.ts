@@ -19,6 +19,7 @@ export interface DisplaySection {
   sectionName: string
   groupId: string | null
   sectionOrder: number | null
+  showTitle: boolean
 }
 
 export interface Membership {

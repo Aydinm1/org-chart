@@ -22,6 +22,7 @@ export interface DirectoryCardViewModel {
 export interface DirectorySectionViewModel {
   id: string
   title: string
+  showTitle: boolean
   cards: DirectoryCardViewModel[]
   order: number | null
 }

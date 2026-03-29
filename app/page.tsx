@@ -25,12 +25,7 @@ export default async function HomePage() {
         <div className="mx-auto w-full max-w-[1780px] px-6 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-14">
           <DirectorySurfacePanel>
             <section className="w-full">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">Institutions</h2>
-                </div>
-              </div>
-              <div className="mt-7">
+              <div>
                 <DirectoryCardGrid cards={rootNavigation.cards} />
               </div>
             </section>

@@ -40,6 +40,7 @@ interface DisplaySectionFields {
   Groups?: unknown
   SectionOrder?: unknown
   Order?: unknown
+  'Show Title?'?: unknown
 }
 
 interface MembershipFields {
@@ -135,6 +136,7 @@ const mapDisplaySection = (record: { id: string; fields: DisplaySectionFields })
     sectionName: label,
     groupId: firstLinkedId(record.fields.Group, record.fields.Groups),
     sectionOrder: toNullableNumber(record.fields.SectionOrder) ?? toNullableNumber(record.fields.Order),
+    showTitle: toBoolean(record.fields['Show Title?']),
   }
 }
 
