@@ -13,6 +13,7 @@ interface AirtableListResponse<TFields> {
 
 interface FetchTableOptions {
   filterByFormula?: string
+  revalidateSeconds?: number | false
 }
 
 const assertEnv = () => {
@@ -126,9 +127,13 @@ export const fetchAirtableRecords = async <TFields>(
       headers: {
         Authorization: `Bearer ${AIRTABLE_API_KEY}`,
       },
-      next: {
-        revalidate: AIRTABLE_REVALIDATE_SECONDS,
-      },
+      ...(options.revalidateSeconds === false
+        ? { cache: 'no-store' as const }
+        : {
+            next: {
+              revalidate: options.revalidateSeconds ?? AIRTABLE_REVALIDATE_SECONDS,
+            },
+          }),
     })
 
     if (!response.ok) {

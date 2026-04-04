@@ -16,10 +16,11 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
     : card.type === 'group'
       ? card.badge || 'Directory Unit'
       : card.badge || ''
-  const actionText = card.destinationGroupId ? 'Open Group' : 'View Person'
+  const actionText = card.destinationGroupId ? 'Show Team' : 'View Person'
+  const imageSrc = card.personId ? `/api/people/${card.personId}/photo` : card.image
 
   const content = (
-    <article className="directory-card w-full max-w-[260px]">
+    <article className="directory-card w-[260px] max-w-full">
       <div className="relative flex h-full min-h-[386px] flex-col items-center rounded-[18px] border-2 border-[#c9a43e] bg-[#1e4f5c] px-4 py-5 text-center shadow-[0_16px_30px_-22px_rgba(9,28,34,1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_38px_-24px_rgba(9,28,34,0.95)]">
         <div className="pointer-events-none absolute inset-x-8 top-0 h-10 rounded-b-full bg-gradient-to-b from-white/10 to-transparent" />
 
@@ -38,7 +39,7 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
 
         {card.image ? (
           <div className="mt-3 h-[88px] w-[88px] shrink-0 overflow-hidden rounded-full bg-[#f0e8d8] ring-2 ring-[#f6e9c7]/35">
-            <img src={card.image} alt={card.title} className="h-full w-full object-cover" />
+            <img src={imageSrc ?? card.image ?? undefined} alt={card.title} className="h-full w-full object-cover" />
           </div>
         ) : (
           <div className="mt-3 flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full bg-[#f0e8d8] text-2xl font-bold text-[#1e4f5c] ring-2 ring-[#f6e9c7]/35">
@@ -74,7 +75,7 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
   }
 
   return (
-    <Link href={`/groups/${card.destinationGroupId}`} className="block h-full">
+    <Link href={`/groups/${card.destinationGroupId}`} className="block h-full w-[260px] max-w-full">
       {content}
     </Link>
   )

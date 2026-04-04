@@ -64,6 +64,10 @@ interface UnitPlacementFields {
   'Use Representative Card'?: unknown
 }
 
+interface FetchRepositoryOptions {
+  revalidateSeconds?: number | false
+}
+
 const compareByOrderThenText = (leftOrder: number | null, rightOrder: number | null, leftText: string, rightText: string) => {
   const normalizedLeftOrder = leftOrder ?? Number.MAX_SAFE_INTEGER
   const normalizedRightOrder = rightOrder ?? Number.MAX_SAFE_INTEGER
@@ -262,6 +266,18 @@ export const fetchPeopleByIds = async (personIds: string[]): Promise<Person[]> =
 
   const records = await fetchAirtableRecords<PersonFields>(TABLES.people, { filterByFormula })
   return records.map(mapPerson)
+}
+
+export const fetchPersonById = async (
+  personId: string,
+  options: FetchRepositoryOptions = {},
+): Promise<Person | null> => {
+  const records = await fetchAirtableRecords<PersonFields>(TABLES.people, {
+    filterByFormula: recordIdFormula(personId),
+    revalidateSeconds: options.revalidateSeconds,
+  })
+
+  return records[0] ? mapPerson(records[0]) : null
 }
 
 export const fetchMembershipsForGroup = async (groupId: string): Promise<MembershipWithPerson[]> => {
