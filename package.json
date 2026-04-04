@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "dev:turbo": "next dev --turbopack",
-    "dev:clean": "rm -rf .next && next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "NEXT_DIST_DIR=.next-dev next dev",
+    "dev:turbo": "NEXT_DIST_DIR=.next-dev next dev --turbopack",
+    "dev:clean": "rm -rf .next-dev && NEXT_DIST_DIR=.next-dev next dev",
+    "build": "NEXT_DIST_DIR=.next-build next build",
+    "start": "NEXT_DIST_DIR=.next-build next start",
     "lint": "eslint .",
     "test:airtable": "node --test tests/airtable-schema.test.mjs"
   },

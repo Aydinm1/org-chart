@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 .next
+.next-dev
+.next-build
+next-env.d.ts
 *.tsbuildinfo
 *.local
 .env

@@ -7,18 +7,20 @@ interface DirectorySectionProps {
 
 export default function DirectorySection({ section }: DirectorySectionProps) {
   return (
-    <section className="space-y-6">
+    <section className="section-lane space-y-6">
       {section.showTitle ? (
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#173942]">{section.title}</h2>
-          </div>
+        <div>
+          <h2 className="m-0 text-[1.7rem] font-bold tracking-[-0.02em] text-[var(--color-ink)] sm:text-[1.95rem]">
+            {section.title}
+          </h2>
         </div>
       ) : null}
       {section.cards.length > 0 ? (
-        <DirectoryCardGrid cards={section.cards} />
+        <div className="section-grid-wrap">
+          <DirectoryCardGrid cards={section.cards} />
+        </div>
       ) : (
-        <div className="rounded-[20px] border border-dashed border-[#cbb57d] bg-[#fff9ec] px-5 py-4 text-sm text-[#173942]/78">
+        <div className="rounded-[22px] border border-dashed border-[var(--color-border-strong)] bg-[rgba(255,250,239,0.86)] px-5 py-4 text-sm text-[var(--color-ink-soft)]">
           No entries are currently assigned to this section.
         </div>
       )}
