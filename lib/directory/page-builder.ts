@@ -1,5 +1,6 @@
 import {
   fetchChildGroups,
+  fetchContentfulGroupIds,
   fetchDisplaySectionsForGroup,
   fetchGroupById,
   fetchGroupByName,
@@ -42,7 +43,11 @@ const createPersonCard = (membership: MembershipWithPerson, sectionName: string)
   }
 }
 
-const createGroupCard = (placement: UnitPlacement, sectionName: string): DirectoryCardViewModel | null => {
+const createGroupCard = (
+  placement: UnitPlacement,
+  sectionName: string,
+  canNavigate: boolean,
+): DirectoryCardViewModel | null => {
   if (!placement.childGroup) {
     return null
   }
@@ -51,8 +56,8 @@ const createGroupCard = (placement: UnitPlacement, sectionName: string): Directo
     id: `placement:${placement.id}`,
     type: 'group',
     title: placement.childGroup.name,
-    destinationGroupId: placement.childGroup.id,
-    destinationGroupLabel: placement.childGroup.name,
+    destinationGroupId: canNavigate ? placement.childGroup.id : undefined,
+    destinationGroupLabel: canNavigate ? placement.childGroup.name : undefined,
     groupId: placement.childGroup.id,
     sectionName,
     order: placement.order,
@@ -62,6 +67,7 @@ const createGroupCard = (placement: UnitPlacement, sectionName: string): Directo
 const createRepresentativeGroupCard = (
   placement: UnitPlacement,
   sectionName: string,
+  canNavigate: boolean,
   representativeMembership?: MembershipWithPerson | null,
 ): DirectoryCardViewModel | null => {
   if (!placement.childGroup) {
@@ -69,13 +75,13 @@ const createRepresentativeGroupCard = (
   }
 
   if (!placement.useRepresentativeCard) {
-    return createGroupCard(placement, sectionName)
+    return createGroupCard(placement, sectionName, canNavigate)
   }
 
   const chairMembership = representativeMembership ?? null
 
   if (!chairMembership?.person) {
-    return createGroupCard(placement, sectionName)
+    return createGroupCard(placement, sectionName, canNavigate)
   }
 
   return {
@@ -85,8 +91,8 @@ const createRepresentativeGroupCard = (
     subtitle: chairMembership.role || undefined,
     badge: placement.childGroup.name,
     image: chairMembership.person.photo,
-    destinationGroupId: placement.childGroup.id,
-    destinationGroupLabel: placement.childGroup.name,
+    destinationGroupId: canNavigate ? placement.childGroup.id : undefined,
+    destinationGroupLabel: canNavigate ? placement.childGroup.name : undefined,
     groupId: placement.childGroup.id,
     personId: chairMembership.person.id,
     email: chairMembership.person.email || undefined,
@@ -128,6 +134,7 @@ export const loadRootNavigation = async (rootGroupName = ROOT_GROUP_NAME): Promi
   }
 
   const childGroups = await fetchChildGroups(rootGroup.id)
+  const contentfulGroupIds = await fetchContentfulGroupIds(childGroups.map((group) => group.id))
 
   return {
     rootGroup,
@@ -135,8 +142,8 @@ export const loadRootNavigation = async (rootGroupName = ROOT_GROUP_NAME): Promi
       id: `root:${group.id}`,
       type: 'group',
       title: group.name,
-      destinationGroupId: group.id,
-      destinationGroupLabel: group.name,
+      destinationGroupId: contentfulGroupIds.has(group.id) ? group.id : undefined,
+      destinationGroupLabel: contentfulGroupIds.has(group.id) ? group.name : undefined,
       groupId: group.id,
       sectionName: rootGroup.name,
       order: group.groupOrder,
@@ -185,6 +192,11 @@ export const loadGroupPage = async (groupIdOrName: string): Promise<GroupPageVie
       .filter((placement) => placement.useRepresentativeCard && placement.childGroupId)
       .map((placement) => placement.childGroupId as string),
   )
+  const contentfulGroupIds = await fetchContentfulGroupIds(
+    unitPlacements
+      .map((placement) => placement.childGroupId)
+      .filter((groupId): groupId is string => Boolean(groupId)),
+  )
 
   const sections: DirectorySectionViewModel[] = []
 
@@ -199,6 +211,7 @@ export const loadGroupPage = async (groupIdOrName: string): Promise<GroupPageVie
       createRepresentativeGroupCard(
         placement,
         section.label,
+        placement.childGroupId ? contentfulGroupIds.has(placement.childGroupId) : false,
         placement.childGroupId ? representativeMembershipsByGroupId.get(placement.childGroupId) ?? null : null,
       ),
     )

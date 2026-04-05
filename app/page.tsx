@@ -1,9 +1,8 @@
-import DirectoryCardGrid from '../components/directory/DirectoryCardGrid'
+import DirectoryRootStage from '../components/directory/DirectoryRootStage'
 import DirectoryShell from '../components/directory/DirectoryShell'
-import DirectorySurfacePanel from '../components/directory/DirectorySurfacePanel'
 import { loadRootNavigation } from '../lib/directory/page-builder'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export default async function HomePage() {
   let rootNavigation = null
@@ -18,21 +17,16 @@ export default async function HomePage() {
   if (rootNavigation) {
     return (
       <DirectoryShell
+        variant="gateway"
         title={rootNavigation.rootGroup.name}
         eyebrow="Org Directory"
-        description="Browse the top-level units below Midwest Institutions."
+        description="A shared view across the organization’s four central branches."
       >
-        <div className="mx-auto w-full max-w-[1780px] px-6 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-14">
-          <DirectorySurfacePanel>
-            <section className="section-lane w-full">
-              <div className="section-grid-wrap">
-                <DirectoryCardGrid cards={rootNavigation.cards} />
-              </div>
-            </section>
-            {rootNavigation.cards.length === 0 ? (
-              <p className="text-sm text-[var(--color-ink-soft)]">No child groups were found under the configured root group.</p>
-            ) : null}
-          </DirectorySurfacePanel>
+        <div className="gateway-page-wrap mx-auto w-full max-w-[1360px] px-6 pb-14 sm:px-8 sm:pb-16 lg:px-10 lg:pb-[4.5rem]">
+          <DirectoryRootStage cards={rootNavigation.cards} />
+          {rootNavigation.cards.length === 0 ? (
+            <p className="mt-6 text-sm text-[var(--color-ink-soft)]">No child groups were found under the configured root group.</p>
+          ) : null}
         </div>
       </DirectoryShell>
     )

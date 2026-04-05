@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import DirectoryPage from '../../../components/directory/DirectoryPage'
 import { loadGroupPage } from '../../../lib/directory/page-builder'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 interface GroupPageProps {
   params: Promise<{ groupId: string }>

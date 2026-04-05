@@ -268,6 +268,47 @@ export const fetchPeopleByIds = async (personIds: string[]): Promise<Person[]> =
   return records.map(mapPerson)
 }
 
+export const fetchContentfulGroupIds = async (groupIds: string[]): Promise<Set<string>> => {
+  const uniqueGroupIds = [...new Set(groupIds)].filter(Boolean)
+  if (uniqueGroupIds.length === 0) {
+    return new Set()
+  }
+
+  const requestedGroupIds = new Set(uniqueGroupIds)
+  const contentfulGroupIds = new Set<string>()
+
+  const [membershipRecords, placementRecords] = await Promise.all([
+    fetchAirtableRecords<MembershipFields>(TABLES.memberships),
+    fetchAirtableRecords<UnitPlacementFields>(TABLES.unitPlacements),
+  ])
+
+  for (const record of membershipRecords) {
+    const membership = mapMembership(record)
+    if (
+      membership.groupId &&
+      requestedGroupIds.has(membership.groupId) &&
+      membership.displaySectionId &&
+      membership.personId
+    ) {
+      contentfulGroupIds.add(membership.groupId)
+    }
+  }
+
+  for (const record of placementRecords) {
+    const placement = mapUnitPlacement(record)
+    if (
+      placement.parentGroupId &&
+      requestedGroupIds.has(placement.parentGroupId) &&
+      placement.displaySectionId &&
+      placement.childGroupId
+    ) {
+      contentfulGroupIds.add(placement.parentGroupId)
+    }
+  }
+
+  return contentfulGroupIds
+}
+
 export const fetchPersonById = async (
   personId: string,
   options: FetchRepositoryOptions = {},

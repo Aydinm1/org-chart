@@ -1,6 +1,4 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface DirectoryBackButtonProps {
   fallbackHref: string
@@ -8,19 +6,13 @@ interface DirectoryBackButtonProps {
 }
 
 export default function DirectoryBackButton({ fallbackHref, label }: DirectoryBackButtonProps) {
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push(fallbackHref)
-  }
-
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <Link
+      href={fallbackHref}
+      prefetch
       className="directory-back-button rounded-full px-4 py-2 text-xs font-bold uppercase"
     >
       {label}
-    </button>
+    </Link>
   )
 }
