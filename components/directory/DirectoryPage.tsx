@@ -22,8 +22,8 @@ export default function DirectoryPage({ page }: DirectoryPageProps) {
           <DirectoryBackButton fallbackHref={page.backHref} label={page.backLabel} />
         </div>
       </div>
-      <div className="mx-auto w-full max-w-[1780px] px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-        <DirectorySurfacePanel>
+      <div className="mx-auto w-full max-w-[1780px] px-6 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8">
+        <DirectorySurfacePanel variant="directory">
           {page.sections.length > 0 ? (
             <>
               {page.sections.map((section) => (

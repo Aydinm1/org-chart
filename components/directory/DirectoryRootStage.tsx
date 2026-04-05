@@ -7,19 +7,14 @@ interface DirectoryRootStageProps {
 
 interface RootStageCopy {
   body: string
-  footer: string
   cta?: string
 }
 
-const DEFAULT_CONTEXT_COPY: RootStageCopy = {
-  body: 'Leadership, committees, and regional council work.',
-  footer: 'Institutional branch',
-}
-
-const CONTINUATION_COPY: RootStageCopy = {
-  body: 'Members, leadership, and sections continue here.',
-  footer: 'Midwest Council directory',
-  cta: 'Explore directory',
+const ROOT_STAGE_COPY_BY_TITLE: Record<string, RootStageCopy> = {
+  CAB: { body: 'CAB sample description' },
+  'Midwest Council': { body: 'Midwest Council sample description', cta: 'Explore directory' },
+  GRB: { body: 'GRB sample description' },
+  ITREB: { body: 'ITREB sample description' },
 }
 
 export default function DirectoryRootStage({ cards }: DirectoryRootStageProps) {
@@ -27,57 +22,46 @@ export default function DirectoryRootStage({ cards }: DirectoryRootStageProps) {
     ?? cards.find((card) => Boolean(card.destinationGroupId))
 
   return (
-    <section className="root-stage-shell" aria-labelledby="root-stage-title">
-      <div className="root-stage-frame">
-        <header className="root-stage-header">
-          <div className="root-stage-header__copy">
-            <h2 id="root-stage-title" className="root-stage-heading m-0">
-              Central branches
-            </h2>
-            <p className="root-stage-summary m-0">
-              Four standing branches gathered in a shared view.
-            </p>
-          </div>
-        </header>
-
-        <div className="root-stage-grid" role="list" aria-label="Central branches">
-          {cards.map((card, index) => {
-            const isContinuation = featuredCard?.id === card.id && Boolean(card.destinationGroupId)
-            const copy = isContinuation ? CONTINUATION_COPY : DEFAULT_CONTEXT_COPY
-            const body = (
-              <article
-                role="listitem"
-                className={`root-stage-card root-stage-card--${index + 1} ${isContinuation ? 'root-stage-card--continuation' : 'root-stage-card--context'}`}
-              >
-                <div className="root-stage-card__frame">
-                  <div className="root-stage-card__body">
-                    <h3 className="root-stage-card__title m-0">{card.title}</h3>
-                    <p className="root-stage-card__copy m-0">{copy.body}</p>
-                  </div>
-
-                  <div className={`root-stage-card__footer ${isContinuation ? 'root-stage-card__footer--action' : ''}`}>
-                    <span className="root-stage-card__footer-note">{copy.footer}</span>
-                    {isContinuation && copy.cta ? <span className="root-stage-card__cta">{copy.cta}</span> : null}
-                  </div>
+    <section className="root-stage-shell" aria-label="Central branches">
+      <div className="root-stage-grid" role="list" aria-label="Central branches">
+        {cards.map((card, index) => {
+          const isContinuation = featuredCard?.id === card.id && Boolean(card.destinationGroupId)
+          const copy = ROOT_STAGE_COPY_BY_TITLE[card.title] ?? {
+            body: `${card.title} sample description`,
+            cta: isContinuation ? 'Explore directory' : undefined,
+          }
+          const body = (
+            <article
+              role="listitem"
+              className={`root-stage-card root-stage-card--${index + 1} ${isContinuation ? 'root-stage-card--continuation' : 'root-stage-card--context'}`}
+            >
+              <div className="root-stage-card__frame">
+                <div className="root-stage-card__body">
+                  <h3 className="root-stage-card__title m-0">{card.title}</h3>
+                  <p className="root-stage-card__copy m-0">{copy.body}</p>
                 </div>
-              </article>
-            )
 
-            if (!isContinuation || !card.destinationGroupId) {
-              return (
-                <div key={card.id} className="root-stage-slot">
-                  {body}
+                <div className={`root-stage-card__footer ${isContinuation ? 'root-stage-card__footer--action' : ''}`}>
+                  {isContinuation && copy.cta ? <span className="root-stage-card__cta">{copy.cta}</span> : null}
                 </div>
-              )
-            }
+              </div>
+            </article>
+          )
 
+          if (!isContinuation || !card.destinationGroupId) {
             return (
-              <Link key={card.id} href={`/groups/${card.destinationGroupId}`} prefetch className="root-stage-link">
+              <div key={card.id} className="root-stage-slot">
                 {body}
-              </Link>
+              </div>
             )
-          })}
-        </div>
+          }
+
+          return (
+            <Link key={card.id} href={`/groups/${card.destinationGroupId}`} prefetch className="root-stage-link">
+              {body}
+            </Link>
+          )
+        })}
       </div>
     </section>
   )

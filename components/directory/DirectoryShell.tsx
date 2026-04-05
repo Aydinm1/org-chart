@@ -30,7 +30,7 @@ export default function DirectoryShell({
         <PageGraphic position="top" className={isGateway ? 'page-graphic--gateway' : undefined} />
         <div
           className={`mx-auto flex w-full flex-wrap gap-5 px-6 sm:px-8 lg:px-10 ${
-            isGateway ? 'max-w-[1360px] py-7 sm:py-8 lg:py-9' : 'max-w-[1800px] py-8 sm:py-10 lg:py-11'
+            isGateway ? 'max-w-[1780px] py-8 sm:py-10 lg:py-11' : 'max-w-[1800px] py-8 sm:py-10 lg:py-11'
           } ${hasBackButton ? 'items-center justify-between' : 'items-end justify-start'}`}
         >
           <div className="flex min-w-0 items-center gap-4">
@@ -48,7 +48,7 @@ export default function DirectoryShell({
           {hasBackButton ? <DirectoryBackButton fallbackHref={backHref!} label={backLabel!} /> : null}
         </div>
       </header>
-      <div className={`directory-shell__body relative mx-auto flex w-full flex-1 flex-col ${isGateway ? 'max-w-[1360px]' : 'max-w-[1800px]'}`}>
+      <div className={`directory-shell__body relative mx-auto flex w-full flex-1 flex-col ${isGateway ? 'max-w-[1780px]' : 'max-w-[1800px]'}`}>
         {children}
       </div>
       {isGateway ? null : (

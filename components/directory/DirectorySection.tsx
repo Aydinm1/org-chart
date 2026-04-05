@@ -7,10 +7,10 @@ interface DirectorySectionProps {
 
 export default function DirectorySection({ section }: DirectorySectionProps) {
   return (
-    <section className="section-lane space-y-6">
+    <section className="section-lane">
       {section.showTitle ? (
-        <div>
-          <h2 className="m-0 text-[1.7rem] font-bold tracking-[-0.02em] text-[var(--color-ink)] sm:text-[1.95rem]">
+        <div className="section-lane__header">
+          <h2 className="m-0 text-[1.28rem] font-bold tracking-[-0.02em] text-[var(--color-ink)] sm:text-[1.38rem]">
             {section.title}
           </h2>
         </div>
