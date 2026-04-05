@@ -166,19 +166,15 @@ button {
 .gateway-page-wrap {
   position: relative;
   margin-top: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: clamp(30rem, calc(100vh - 14rem), 42rem);
-  padding-top: clamp(3.5rem, 6vw, 5.5rem);
+  padding-top: clamp(1.9rem, 3vw, 2.7rem);
 }
 
 .gateway-page-wrap::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: clamp(3.5rem, 5vw, 4.5rem);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-white) 10%, transparent), transparent 88%);
+  height: clamp(2.2rem, 3.4vw, 3rem);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-white) 10%, transparent), transparent 90%);
   pointer-events: none;
 }
 
@@ -483,12 +479,6 @@ button {
 }
 
 @media (max-width: 720px) {
-  .gateway-page-wrap {
-    min-height: auto;
-    justify-content: flex-start;
-    padding-top: clamp(2.5rem, 7vw, 3.5rem);
-  }
-
   .root-stage-grid {
     grid-template-columns: 1fr;
     gap: 0.74rem;
