@@ -1,40 +1,69 @@
 # Admin Auth + Directory Editor TODOs
 
-This repo is currently a public, read-only Next.js app backed by Airtable. The work below adds a protected admin area without changing the public browsing flow.
+This repo is still a public, read-only Next.js app backed by Airtable. Auth is now partially started with custom MySQL + JWT route handlers instead of Prisma/Auth.js.
 
-## Goals
+## Current State
 
-- Keep `/`, `/groups/[groupId]`, and `/api/people/[personId]/photo` public.
-- Add a protected `/admin` area that requires login.
-- Use MySQL for application users and permissions.
-- Use Auth.js with email/password login and JWT sessions.
-- Keep Airtable as the source of truth for directory content in v1.
-- Add two admin views:
-  - user management
-  - directory editor
+- [x] Added a MySQL pool helper in `lib/db.ts`.
+- [x] Added `POST /api/auth/login`.
+- [x] Added `POST /api/auth/logout`.
+- [x] Added `GET /api/auth/me`.
+- [x] Added an `/admin` placeholder page.
+- [x] Chose direct MySQL access instead of Prisma for v1.
+- [ ] Document the actual MySQL schema used for admin users.
+- [ ] Add a bootstrap path for the first admin user.
 
-## 1. Project Setup
+## Decision
 
-- [ ] Add dependencies for:
-  - `auth.js` / `next-auth`
-  - `prisma`
-  - `@prisma/client`
-  - password hashing library such as `bcryptjs`
-  - form/schema validation library if needed for admin payloads
-- [ ] Add environment variables to `README.md` and local env setup for:
-  - `DATABASE_URL`
-  - Auth secret
-  - admin bootstrap credentials if using a seed path
-- [ ] Decide final route structure for auth and admin pages:
-  - `/login`
-  - `/admin`
-  - `/admin/users`
-  - `/admin/directory`
+- [x] Do not add Prisma right now.
+- [ ] Keep custom auth for v1 unless a stronger need for Auth.js appears.
+- [ ] Revisit Auth.js only if we want built-in session helpers, provider support, CSRF-managed sign-in flows, or a standard auth surface across the app.
 
-## 2. Prisma + MySQL User Model
+## 1. Stabilize The Existing Auth Routes
 
-- [ ] Initialize Prisma in the repo.
-- [ ] Create a MySQL `User` model with:
+- [x] Fix route import/type issues in `app/api/auth/login/route.ts`.
+- [x] Fix async cookie usage in `app/api/auth/me/route.ts`.
+- [ ] Stop returning the JWT in the login JSON body if the cookie is the session source of truth.
+- [ ] Define and enforce a shared JWT payload shape.
+- [ ] Validate `JWT_SECRET` explicitly and fail clearly when missing.
+- [ ] Normalize auth error responses so login/me/logout return a consistent shape.
+- [ ] Decide whether `GET /api/auth/me` should return the raw decoded token or a sanitized user object.
+
+## 2. Extract Shared Server Auth Helpers
+
+- [ ] Add a server-only auth helper module for:
+  - reading the auth cookie
+  - verifying the JWT
+  - returning the current user
+  - checking required roles
+- [ ] Use that shared helper from route handlers instead of duplicating cookie/JWT logic.
+- [ ] Add one helper for "require authenticated user".
+- [ ] Add one helper for "require admin role".
+
+## 3. Protect The Admin Surface
+
+- [ ] Protect `/admin` and all future nested admin routes.
+- [ ] Redirect unauthenticated users to `/login`.
+- [ ] Prevent non-admin users from loading admin pages.
+- [ ] Decide whether `editor` and `viewer` roles should exist in v1 or whether only `admin` should be allowed initially.
+- [ ] Add middleware or server-side guards before building more admin pages.
+
+## 4. Finish The Login UX
+
+- [ ] Create a `/login` page.
+- [ ] Add an email/password form that posts to `/api/auth/login`.
+- [ ] Show clear error states for:
+  - invalid credentials
+  - inactive user
+  - unexpected server failure
+- [ ] Redirect authenticated users to `/admin`.
+- [ ] Redirect already-authenticated users away from `/login`.
+- [ ] Add a logout action/button in the admin UI that calls `/api/auth/logout`.
+
+## 5. Lock Down The User Model
+
+- [ ] Save the current `users` table definition in the repo, for example as `db/schema.sql` or documented SQL in `README.md`.
+- [ ] Confirm the table includes:
   - `id`
   - `email` unique
   - `name`
@@ -43,59 +72,26 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
   - `isActive`
   - `createdAt`
   - `updatedAt`
-- [ ] Create a role enum:
+- [ ] Decide whether roles are:
   - `admin`
   - `editor`
   - `viewer`
-- [ ] Generate and apply the first migration.
-- [ ] Add a Prisma client helper for server-side use.
-- [ ] Add a seed/bootstrap script for the first admin user.
+- [ ] Add a script or documented SQL flow to create the first admin user with a hashed password.
+- [ ] Add a password-hash utility for user creation and password reset flows.
 
-## 3. Auth.js Integration
+## 6. Build The Admin Shell
 
-- [ ] Add Auth.js config for Next.js App Router.
-- [ ] Use a credentials provider with email/password login.
-- [ ] Configure JWT session strategy.
-- [ ] Include `id`, `email`, and `role` in the session/JWT payload.
-- [ ] Add password verification against stored password hashes.
-- [ ] Reject inactive users.
-- [ ] Add shared auth helpers for:
-  - getting the current session/user on the server
-  - checking whether the user is authenticated
-  - checking whether the user has a required role
-
-## 4. Route Protection
-
-- [ ] Protect `/admin` and all nested admin routes.
-- [ ] Redirect unauthenticated users to `/login`.
-- [ ] Keep all existing public pages accessible without login.
-- [ ] Prevent non-admins from reaching user-management mutations.
-- [ ] Decide whether `viewer` can access read-only admin pages and enforce consistently.
-
-## 5. Login UX
-
-- [ ] Create a `/login` page.
-- [ ] Add a simple email/password form.
-- [ ] Show clear error states for:
-  - invalid credentials
-  - inactive user
-  - unexpected auth failure
-- [ ] Redirect authenticated users to `/admin`.
-- [ ] Redirect already-authenticated users away from `/login`.
-
-## 6. Admin Shell
-
+- [ ] Replace the placeholder `/admin` page with a real admin landing page.
 - [ ] Create an admin layout separate from the public directory shell.
 - [ ] Add admin navigation for:
   - `Users`
   - `Directory Editor`
-- [ ] Reuse the repo's visual language where it still fits.
-- [ ] Make the admin layout denser and more table-oriented than the public site.
+- [ ] Keep the public site visuals intact while making admin pages denser and more task-oriented.
 
 ## 7. Users View
 
 - [ ] Create `/admin/users`.
-- [ ] Add a table that lists:
+- [ ] Add a table listing:
   - name
   - email
   - role
@@ -103,20 +99,20 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
   - created date
 - [ ] Add admin-only actions for:
   - create user
-  - edit user role
+  - change role
   - activate/deactivate user
-  - reset or change password
-- [ ] Add validation for:
+  - reset password
+- [ ] Validate:
   - unique email
   - valid role
   - password rules
-- [ ] Prevent an admin from accidentally removing the only active admin account.
+- [ ] Prevent removal or deactivation of the last active admin account.
 
 ## 8. Directory Editor Scope
 
 - [ ] Create `/admin/directory`.
-- [ ] Keep Airtable as the data source for directory content in v1.
-- [ ] Build the editor around the Airtable tables already required by this repo:
+- [ ] Keep Airtable as the source of truth for directory content in v1.
+- [ ] Build the editor around the existing Airtable tables:
   - `Groups`
   - `People`
   - `Display Sections`
@@ -138,44 +134,11 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
   - fetching single records
   - creating records
   - updating records
-- [ ] Keep admin write paths separate from public page-building functions.
-- [ ] Normalize Airtable field handling so admin forms match the current public rendering rules.
+- [ ] Keep admin write paths separate from the public page-building functions.
+- [ ] Normalize Airtable field handling so admin forms match current public rendering rules.
 - [ ] Handle Airtable API failures cleanly in the admin UI.
 
-## 10. Directory Editor UX
-
-- [ ] Add a top-level selector or tabs for each managed Airtable table.
-- [ ] Add searchable/filterable tables for records.
-- [ ] Add create/edit forms using drawers, modals, or split panes.
-- [ ] For `People`, support:
-  - name
-  - email
-  - phone
-  - photo URL or attachment handling strategy
-- [ ] For `Groups`, support:
-  - group name
-  - parent group
-  - group order
-- [ ] For `Display Sections`, support:
-  - label
-  - owning group
-  - section order
-  - show title
-- [ ] For `Memberships`, support:
-  - person
-  - group
-  - role
-  - display section
-  - order
-  - chair flag
-- [ ] For `Unit Placements`, support:
-  - parent group
-  - child group
-  - display section
-  - order
-  - use representative card
-
-## 11. Guard Rails For Existing Public Behavior
+## 10. Guard Rails For Existing Public Behavior
 
 - [ ] Preserve root page behavior:
   - `/` still uses `Midwest Institutions`
@@ -190,19 +153,7 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
 - [ ] Preserve public photo behavior:
   - `/api/people/[personId]/photo` still redirects correctly
 
-## 12. Server Actions / API Surface
-
-- [ ] Decide whether admin mutations will use:
-  - server actions
-  - route handlers
-  - a mix of both
-- [ ] Keep the public site free of unnecessary new API routes.
-- [ ] Add only the admin-side mutation surface needed for:
-  - auth
-  - user CRUD
-  - Airtable record create/update
-
-## 13. Validation + Error Handling
+## 11. Validation + Error Handling
 
 - [ ] Validate all admin inputs server-side.
 - [ ] Add clear UI feedback for:
@@ -215,12 +166,13 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
   - placements without a parent group or child group
   - broken display section references
 
-## 14. Testing
+## 12. Testing
 
 - [ ] Add auth tests for:
   - valid login
   - invalid login
   - inactive user rejection
+  - `/api/auth/me` with a valid cookie
   - admin route protection
 - [ ] Add authorization tests for:
   - admin access
@@ -230,29 +182,17 @@ This repo is currently a public, read-only Next.js app backed by Airtable. The w
 - [ ] Add Airtable admin service tests where feasible.
 - [ ] Add regression checks for existing public pages.
 - [ ] Run `npm run lint`.
-- [ ] Add at least one focused test pass for directory behavior after admin edits.
+- [ ] Run `npx tsc --noEmit`.
 
-## 15. Deployment / Rollout
+## 13. Deployment / Rollout
 
+- [ ] Add auth-related environment variables to `README.md`:
+  - `DB_HOST`
+  - `DB_PORT`
+  - `DB_USER`
+  - `DB_PASSWORD`
+  - `DB_NAME`
+  - `JWT_SECRET`
 - [ ] Confirm MySQL is provisioned in each environment.
 - [ ] Confirm secrets are available in each environment.
-- [ ] Run Prisma migration in deployment flow.
-- [ ] Seed or manually create the first admin user.
-- [ ] Smoke test:
-  - public home page
-  - public group page
-  - login page
-  - admin users view
-  - admin directory editor
-
-## Suggested Implementation Order
-
-- [ ] 1. Add Prisma, MySQL user model, migration, and seed path.
-- [ ] 2. Add Auth.js credentials login with JWT session support.
-- [ ] 3. Add `/login` and protect `/admin`.
-- [ ] 4. Build admin shell and `Users` view first.
-- [ ] 5. Add user CRUD.
-- [ ] 6. Add Airtable admin service layer.
-- [ ] 7. Build `Directory Editor` for `People` and `Groups`.
-- [ ] 8. Add `Display Sections`, `Memberships`, and `Unit Placements` editing.
-- [ ] 9. Add validation, permissions hardening, and regression tests.
+- [ ] Create the first admin user in each environment.

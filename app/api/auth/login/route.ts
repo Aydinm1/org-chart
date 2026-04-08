@@ -2,16 +2,7 @@ import { NextResponse } from 'next/server'
 import pool from '../../../../lib/db'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import type { RowDataPacket } from 'mysql2/promise'
-
-type UserRow = RowDataPacket & {
-  id: number
-  email: string
-  passwordHash: string
-  name: string
-  role: "admin" | "viewer" | "editor";
-  isActive: boolean
-}
+import { UserRow } from '../../../../lib/db/types'
 
 export async function POST(request: Request) {
     try{
