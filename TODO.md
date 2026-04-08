@@ -18,21 +18,21 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [x] Fix route import/type issues in `app/api/auth/login/route.ts`.
 - [x] Fix async cookie usage in `app/api/auth/me/route.ts`.
 - [ ] Stop returning the JWT in the login JSON body if the cookie is the session source of truth.
-- [ ] Define and enforce a shared JWT payload shape.
+- [X] Define and enforce a shared JWT payload shape.
 - [ ] Validate `JWT_SECRET` explicitly and fail clearly when missing.
 - [ ] Normalize auth error responses so login/me/logout return a consistent shape.
 - [ ] Decide whether `GET /api/auth/me` should return the raw decoded token or a sanitized user object.
 
 ## 2. Extract Shared Server Auth Helpers
 
-- [ ] Add a server-only auth helper module for:
+- [X] Add a server-only auth helper module for:
   - reading the auth cookie
   - verifying the JWT
   - returning the current user
   - checking required roles
-- [ ] Use that shared helper from route handlers instead of duplicating cookie/JWT logic.
+- [X] Use that shared helper from route handlers instead of duplicating cookie/JWT logic.
 - [ ] Add one helper for "require authenticated user".
-- [ ] Add one helper for "require admin role".
+- [X] Add one helper for "require admin role".
 
 ## 3. Protect The Admin Surface
 
@@ -57,7 +57,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 ## 5. Lock Down The User Model
 
 - [ ] Save the current `users` table definition in the repo, for example as `db/schema.sql` or documented SQL in `README.md`.
-- [ ] Confirm the table includes:
+- [X] Confirm the table includes:
   - `id`
   - `email` unique
   - `name`
@@ -66,7 +66,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
   - `isActive`
   - `createdAt`
   - `updatedAt`
-- [ ] Decide whether roles are:
+- [X] Decide whether roles are:
   - `admin`
   - `editor`
   - `viewer`
