@@ -1,7 +1,8 @@
 import { RowDataPacket } from "mysql2";
 
 
-export type UserRole = "admin" | "viewer" | "editor";
+export const USER_ROLES = ["admin", "viewer", "editor"] as const;
+export type UserRole = typeof USER_ROLES[number];
 
 export type UserRow = RowDataPacket & {
   id: number
@@ -20,6 +21,6 @@ export type UserSummaryRow = RowDataPacket & {
     isActive: boolean
 }
 
-  export type UserIdRow = RowDataPacket & {
+export type UserIdRow = RowDataPacket & {
     id: number
   }

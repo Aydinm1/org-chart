@@ -1,26 +1,14 @@
 import { NextResponse } from 'next/server'
 import pool from '../../../../lib/db'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import { cookies } from 'next/headers'
 import { UserSummaryRow, UserIdRow } from '../../../../lib/db/types'
 import { ResultSetHeader } from 'mysql2'
-import { AuthTokenPayload } from '../../../../lib/auth/types'
+import { requireAdmin } from '../../../../lib/auth/server'
 
 export async function POST(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-        
-        if (!token) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-        }
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
-        
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-        }
+        await requireAdmin();
+
         const { name, email, role} = await request.json()
 
         if (!name || !email || !role) {
@@ -40,6 +28,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, message: 'User created successfully' }, { status: 201 })
         
     } catch (error) {
+                if (error instanceof Error) {
+            if (error.message === 'Unauthorized') {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+            }
+            if (error.message === 'Forbidden') {
+                return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+            }
+        }
         console.error('Error creating user:', error)
         return NextResponse.json({ success: false, message: 'Error creating user' }, { status: 500 })
     }
@@ -49,23 +45,19 @@ export async function POST(request: Request) {
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-        
-        if (!token) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-        }
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
-        
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-        }
-
+        await requireAdmin();
         const [rows] = await pool.query<UserSummaryRow[]>('SELECT id, name, email, role, isActive FROM users')
         return NextResponse.json({ success: true, users: rows }, { status: 200 })
 
     } catch (error) {
+                if (error instanceof Error) {
+            if (error.message === 'Unauthorized') {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+            }
+            if (error.message === 'Forbidden') {
+                return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+            }
+        }
         console.error('Error fetching users:', error)
         return NextResponse.json({ success: false, message: 'Error fetching users' }, { status: 500 })
     }

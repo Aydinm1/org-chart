@@ -1,9 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
-import { cookies } from 'next/headers'
 import pool from '../../../../../lib/db'
-import jwt from 'jsonwebtoken'
-import { UserIdRow, UserSummaryRow } from '../../../../../lib/db/types'
-import { AuthTokenPayload } from '../../../../../lib/auth/types'
+import { UserIdRow, UserSummaryRow, USER_ROLES } from '../../../../../lib/db/types'
+import { requireAdmin } from '../../../../../lib/auth/server'
 
 
 export async function DELETE(
@@ -11,20 +9,9 @@ export async function DELETE(
     { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
-
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-        }
-
-        const {userId} = await params
+        await requireAdmin();
+        
+        const { userId } = await params;
 
         if (!userId) {
             return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 })
@@ -46,6 +33,14 @@ export async function DELETE(
         return NextResponse.json({ success: true, message: 'User deleted successfully' }, { status: 200 })
 
     } catch (error) {
+                if (error instanceof Error) {
+            if (error.message === 'Unauthorized') {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+            }
+            if (error.message === 'Forbidden') {
+                return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+            }
+        }
         console.error('Error deleting user:', error)
         return NextResponse.json({ success: false, message: 'Error deleting user' }, { status: 500 })
     }
@@ -56,20 +51,13 @@ export async function GET(
     { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        await requireAdmin();
 
-        if (!token) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+        const {userId} = await params;
+
+        if (!userId) {
+            return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 })
         }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
-
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-        }
-
-        const {userId} = await params
         const userIdNum = Number(userId)
 
         if (isNaN(userIdNum)) {
@@ -87,6 +75,14 @@ export async function GET(
         return NextResponse.json({ success: true, user }, { status: 200 })
 
     } catch (error) {
+                if (error instanceof Error) {
+            if (error.message === 'Unauthorized') {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+            }
+            if (error.message === 'Forbidden') {
+                return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+            }
+        }
         console.error('Error fetching user:', error)
         return NextResponse.json({ success: false, message: 'Error fetching user' }, { status: 500 })
     }
@@ -97,20 +93,11 @@ export async function PATCH(
     { params }: { params: Promise<{ userId: string }> }
 ){
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+        await requireAdmin();
+        const {userId} = await params;
+        if (!userId) {
+            return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 })
         }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
-
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-        }
-
-        const {userId} = await params
         const userIdNum = Number(userId)
 
         if (isNaN(userIdNum)) {
@@ -125,7 +112,27 @@ export async function PATCH(
 
         const { name, email, role, isActive } = await request.json()
 
-        if (email) {
+        if (name === undefined && email === undefined && role === undefined && isActive === undefined) {
+            return NextResponse.json({ success: false, message: 'At least one field (name, email, role, isActive) must be provided for update' }, { status: 400 })
+        }
+
+        if(name !== undefined && name.trim() === '') {
+            return NextResponse.json({ success: false, message: 'Name cannot be empty' }, { status: 400 })
+        }
+
+        if(email !== undefined && email.trim() === '') {
+            return NextResponse.json({ success: false, message: 'Email cannot be empty' }, { status: 400 })
+        }
+
+        if (role !== undefined && !USER_ROLES.includes(role)) {
+            return NextResponse.json({ success: false, message: 'Invalid role. Must be one of admin, viewer, editor' }, { status: 400 })
+        }
+
+        if (isActive !== undefined && typeof isActive !== 'boolean') {
+            return NextResponse.json({ success: false, message: 'isActive must be a boolean' }, { status: 400 })
+        }
+
+        if (email !== undefined) {
             const [existingUser] = await pool.query<UserIdRow[]>('SELECT id FROM users WHERE email = ? AND id != ?', [email, userIdNum])
         
             if (existingUser.length > 0) {
@@ -137,6 +144,14 @@ export async function PATCH(
         return NextResponse.json({ success: true, message: 'User updated successfully' }, { status: 200 })
 
     } catch (error) {
+        if (error instanceof Error) {
+            if (error.message === 'Unauthorized') {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+            }
+            if (error.message === 'Forbidden') {
+                return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+            }
+        }
         console.error('Error updating user:', error)
         return NextResponse.json({ success: false, message: 'Error updating user' }, { status: 500 })
     }

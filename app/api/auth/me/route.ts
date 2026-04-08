@@ -1,19 +1,14 @@
 import {NextResponse} from 'next/server'
-import jwt from 'jsonwebtoken'
-import { cookies } from 'next/headers'
-import { AuthTokenPayload } from '../../../../lib/auth/types';
+import { getCurrentUser } from '../../../../lib/auth/server';
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ user: null }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload;
 
-        return NextResponse.json({ user: decoded });
+        return NextResponse.json({ user });
 
     } catch (error) {
         console.error(error);

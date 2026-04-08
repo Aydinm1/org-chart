@@ -13,12 +13,6 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [ ] Document the actual MySQL schema used for admin users.
 - [ ] Add a bootstrap path for the first admin user.
 
-## Decision
-
-- [x] Do not add Prisma right now.
-- [ ] Keep custom auth for v1 unless a stronger need for Auth.js appears.
-- [ ] Revisit Auth.js only if we want built-in session helpers, provider support, CSRF-managed sign-in flows, or a standard auth surface across the app.
-
 ## 1. Stabilize The Existing Auth Routes
 
 - [x] Fix route import/type issues in `app/api/auth/login/route.ts`.
