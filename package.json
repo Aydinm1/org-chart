@@ -13,6 +13,9 @@
     "test:airtable": "node --test tests/airtable-schema.test.mjs"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.20.0",
     "next": "15.5.14",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.2.1",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
