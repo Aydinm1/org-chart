@@ -35,7 +35,7 @@ export default async function HomePage() {
     <DirectoryShell
       title="Directory Unavailable"
       eyebrow="Org Directory"
-      description="The root directory page could not be assembled from Airtable."
+      description="The root directory page could not be assembled due to an error. Please try again later or contact support if the issue persists."
     >
       <div className="board-surface surface-panel-layers rounded-[32px] px-6 py-8 text-sm text-[var(--color-ink-soft)] sm:px-8 sm:py-10 lg:px-10">
         {loadError}

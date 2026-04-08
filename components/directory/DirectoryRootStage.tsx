@@ -9,7 +9,7 @@ interface RootStageCopy {
   body: string
   cta?: string
 }
-
+//TODO MOVE TO DB
 const ROOT_STAGE_COPY_BY_TITLE: Record<string, RootStageCopy> = {
   CAB: { body: 'CAB sample description' },
   'Midwest Council': { body: 'Midwest Council sample description', cta: 'Explore directory' },
