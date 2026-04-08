@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import { UserSummaryRow, UserIdRow } from '../../../../lib/db/types'
 import { ResultSetHeader } from 'mysql2'
+import { AuthTokenPayload } from '../../../../lib/auth/types'
 
 export async function POST(request: Request) {
     try {
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
         }
         
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { role:string}
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
         
         if (decoded.role !== 'admin') {
             return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
@@ -55,7 +56,7 @@ export async function GET() {
             return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
         }
         
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { role:string}
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as AuthTokenPayload
         
         if (decoded.role !== 'admin') {
             return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
