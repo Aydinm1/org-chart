@@ -190,3 +190,23 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [ ] Confirm MySQL is provisioned in each environment.
 - [ ] Confirm secrets are available in each environment.
 - [ ] Create the first admin user in each environment.
+
+
+
+The login page has no “already logged in” redirect.
+     Right now if an authenticated admin visits /login, the page still renders. You said you wanted already-authenticated users redirected away from login.
+  2. The login page uses window.location.href.
+     That works, but in a Next client page it’s cleaner to use useRouter().push('/admin') or replace('/admin').
+  3. The login page uses React.SubmitEvent.
+     That compiles only because of global React types, but the more standard type here is:
+
+  (event: React.FormEvent<HTMLFormElement>)
+
+  4. The form has no loading state.
+     A double-click can submit twice, and the user gets no feedback while the request is in flight.
+  5. The page has no inline error state.
+     alert(...) works as a temporary fallback, but it’s not good UX.
+  6. app/api/auth/login/route.ts:38 still returns the raw token in the JSON body.
+     If cookie auth is your canonical session mechanism, returning the token body is unnecessary and weaker from a design perspective.
+  7. app/api/auth/me/route.ts:11 returns a different response shape from other auth routes.
+     It’s okay, but your auth responses are still inconsistent:
