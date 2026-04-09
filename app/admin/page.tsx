@@ -1,11 +1,14 @@
 import LogoutButton from '../../components/auth/LogoutButton'
-
+import UsersTable from '../../components/admin/UsersTable'
 export default function AdminPage() {
+
     return (
         <div>
             <h1>Admin Dashboard</h1>
             <p>Welcome to the admin dashboard! Here you can manage users, view analytics, and perform administrative tasks.</p>
             <LogoutButton />
+
+            <UsersTable />
         </div>
     )
 

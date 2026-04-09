@@ -8,3 +8,11 @@ export type AuthTokenPayload = {
     iat?: number
     exp?: number
 }
+
+export type UserSummary = {
+    id: number
+    email: string
+    name: string
+    role: UserRole
+    isActive: boolean
+}
