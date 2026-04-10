@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { UserSummary } from "../../lib/auth/types"
 import { UserRole } from "../../lib/db/types"
+import AddUserModal from "./AddUserModal"
 
 export default function UsersTable() {
   const [users, setUsers] = useState<UserSummary[]>([])
@@ -10,6 +11,10 @@ export default function UsersTable() {
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null)
+  const [passwordCopied, setPasswordCopied] = useState(false)
 
   const getUsers = async () => {
     try {
@@ -203,11 +208,49 @@ export default function UsersTable() {
                 Save Changes
               </button>
               <button
-                type="button"
-                className="rounded-full border border-dashed border-[color:var(--color-border)] bg-transparent px-5 py-3 text-sm font-semibold text-[color:var(--color-ink-soft)] transition hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-ink)]"
+                className="rounded-full border border-[color:var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] shadow-[0_14px_30px_-18px_color-mix(in_srgb,var(--color-ink)_10%,transparent)] transition hover:bg-[color:var(--color-surface-soft)]"
+                onClick={() => {
+                  setEditedUsers({})
+                  setSaveMessage('All changes discarded')
+                }}
               >
+                Discard Changes
+              </button>
+                <button type="button" className="rounded-full border border-[color:var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] shadow-[0_14px_30px_-18px_color-mix(in_srgb,var(--color-ink)_10%,transparent)] transition hover:bg-[color:var(--color-surface-soft)]" onClick={() => {setError(null); setSaveMessage(null); setTemporaryPassword(null); setIsAddUserModalOpen(true)}}>
                 Add User
               </button>
+              <AddUserModal isOpen = {isAddUserModalOpen} onClose={() => setIsAddUserModalOpen(false)} onSubmit={async (formData) => {
+                try{
+                    setError(null)
+                    setSaveMessage(null)
+                    setTemporaryPassword(null)
+                    setPasswordCopied(false)
+
+                    const response = await fetch('/api/admin/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData),
+                    })
+                    const data = await response.json()
+
+                    if(!response.ok){
+                        setError(data.message || 'Failed to add user')
+                        return false
+                    }
+                    setTemporaryPassword(data.temporaryPassword || null)
+                    setSaveMessage('User added successfully')
+                    await getUsers()
+                    return true
+                }
+                catch (error) {
+                    console.error('Error adding user:', error)
+                    setError('An unexpected error occurred while adding the user. Please try again.')
+                    return false
+                }
+              }}
+            />
             </div>
           </div>
 
@@ -220,6 +263,35 @@ export default function UsersTable() {
           {saveMessage ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
               {saveMessage}
+            </div>
+          ) : null}
+
+           {temporaryPassword ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <p className="font-semibold">Copy this temporary password now.</p>
+              <p className="mt-1 text-amber-700">
+                It will not be shown again after you leave this screen.
+              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <code className="rounded-xl bg-white px-3 py-2 font-bold text-[color:var(--color-ink)] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--color-white)_75%,transparent)]">
+                  {temporaryPassword}
+                </code>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(temporaryPassword)
+                      setPasswordCopied(true)
+                    } catch (error) {
+                      console.error('Error copying temporary password:', error)
+                      setError('Failed to copy temporary password. Please copy it manually.')
+                    }
+                  }}
+                  className="rounded-full border border-[color:var(--color-border)] bg-white px-4 py-2 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-surface-soft)]"
+                >
+                  {passwordCopied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
           ) : null}
 
