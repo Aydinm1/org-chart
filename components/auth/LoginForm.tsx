@@ -47,7 +47,7 @@ export default function LoginForm() {
             <input type="email" placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} className= "w-full mb-4 px-3 py-2 border rounded" required />
             <input type="password" placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} className= "w-full mb-4 px-3 py-2 border rounded" required />
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button type="submit" disabled={isSubmitting} className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors">
+            <button type="submit" disabled={isSubmitting} className="w-full rounded-full bg-blue-500 py-2 text-white hover:bg-blue-600 transition-colors">
                 {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
         </form>
