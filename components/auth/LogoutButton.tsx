@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { withBasePath } from '../../lib/base-path'
 
 export default function LogoutButton() {
     const router = useRouter()
@@ -10,7 +11,7 @@ export default function LogoutButton() {
     const handleLogout = async () => {
         setIsSubmitting(true)
         try {
-            const response = await fetch ('/api/auth/logout',{
+            const response = await fetch(withBasePath('/api/auth/logout'),{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

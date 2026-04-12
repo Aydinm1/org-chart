@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import DirectoryCard from '../directory/DirectoryCard'
 import type { EditableGroupOption, EditableMembership } from '../../lib/airtable/types'
+import { withBasePath } from '../../lib/base-path'
 import type { DirectoryCardViewModel } from '../../lib/directory/types'
 
 type DraftMemberships = Record<
@@ -48,7 +49,7 @@ export default function PeopleTable({ canEdit }: PeopleTableProps) {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/directory/memberships', {
+      const response = await fetch(withBasePath('/api/directory/memberships'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export default function PeopleTable({ canEdit }: PeopleTableProps) {
     }
 
     for (const [membershipId, changes] of entries) {
-      const response = await fetch(`/api/directory/memberships/${membershipId}`, {
+      const response = await fetch(withBasePath(`/api/directory/memberships/${membershipId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +142,7 @@ export default function PeopleTable({ canEdit }: PeopleTableProps) {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await fetch(`/api/directory/people/${personId}/photo`, {
+      const response = await fetch(withBasePath(`/api/directory/people/${personId}/photo`), {
         method: 'POST',
         body: formData,
       })
@@ -293,7 +294,7 @@ export default function PeopleTable({ canEdit }: PeopleTableProps) {
     try {
       setIsCreating(true)
 
-      const response = await fetch('/api/directory/memberships', {
+      const response = await fetch(withBasePath('/api/directory/memberships'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

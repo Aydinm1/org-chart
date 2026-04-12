@@ -1,0 +1,69 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: ftp-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set deploy configuration
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "APP_BASE_PATH=/org-chart" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=org-chart-prod" >> "$GITHUB_ENV"
+          else
+            echo "APP_BASE_PATH=/org-chart/dev" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=org-chart-dev" >> "$GITHUB_ENV"
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build standalone bundle
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          NEXT_OUTPUT_MODE: standalone
+          NEXT_PUBLIC_BASE_PATH: ${{ env.APP_BASE_PATH }}
+        run: npm run build
+
+      - name: Assemble deploy directory
+        run: |
+          rm -rf deploy
+          mkdir -p deploy
+          cp -R .next-build/standalone/. deploy/
+          mkdir -p deploy/.next-build
+          cp -R .next-build/static deploy/.next-build/static
+          cp -R public deploy/public
+          mkdir -p deploy/tmp
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > deploy/tmp/restart.txt
+
+      - name: Upload over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          protocol: ftp
+          local-dir: ./deploy/
+          server-dir: ${{ env.FTP_TARGET_DIR }}/

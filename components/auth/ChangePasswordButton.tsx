@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { withBasePath } from '../../lib/base-path'
 
 export default function ChangePasswordButton() {
   const [isOpen, setIsOpen] = useState(false)
@@ -30,7 +31,7 @@ export default function ChangePasswordButton() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/change-password', {
+      const response = await fetch(withBasePath('/api/auth/change-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

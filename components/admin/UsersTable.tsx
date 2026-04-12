@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { UserSummary } from "../../lib/auth/types"
 import { UserRole } from "../../lib/db/types"
+import { withBasePath } from "../../lib/base-path"
 import AddUserModal from "./AddUserModal"
 
 export default function UsersTable() {
@@ -20,7 +21,7 @@ export default function UsersTable() {
     try {
       setLoading(true)
 
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(withBasePath('/api/admin/users'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ export default function UsersTable() {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(withBasePath(`/api/admin/users/${userId}`), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +86,7 @@ export default function UsersTable() {
     }
 
     for (const [userId, changes] of entries) {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(withBasePath(`/api/admin/users/${userId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +227,7 @@ export default function UsersTable() {
                     setTemporaryPassword(null)
                     setPasswordCopied(false)
 
-                    const response = await fetch('/api/admin/users', {
+                    const response = await fetch(withBasePath('/api/admin/users'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getPostLoginPath } from '../../lib/auth/navigation'
+import { withBasePath } from '../../lib/base-path'
 import type { UserRole } from '../../lib/db/types'
 
 export default function LoginForm() {
@@ -18,7 +19,7 @@ export default function LoginForm() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(withBasePath('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
