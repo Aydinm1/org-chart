@@ -14,7 +14,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [x] Added admin user-management API routes.
 - [x] Added a working admin users table with list, edit, delete, and search UI.
 - [x] Added a create-user API route in `POST /api/admin/users`.
-- [ ] Wire create-user into the admin portal UI.
+- [x] Wire create-user into the admin portal UI.
 - [ ] Document the actual MySQL schema used for admin users.
 - [ ] Add a bootstrap path for the first admin user.
 
@@ -27,7 +27,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [ ] Validate `JWT_SECRET` explicitly and fail clearly when missing.
 - [ ] Normalize auth error responses so login/me/logout return a consistent shape.
 - [ ] Decide whether `GET /api/auth/me` should return the raw decoded token or a sanitized user object.
-- [ ] Decide whether `getCurrentUser()` should load the current user from MySQL so `isActive` and role changes apply immediately after login.
+- [x] Decide whether `getCurrentUser()` should load the current user from MySQL so `isActive` and role changes apply immediately after login.
 
 ## 2. Extract Shared Server Auth Helpers
 
@@ -39,7 +39,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
 - [x] Use that shared helper from route handlers instead of duplicating cookie/JWT logic.
 - [x] Add one helper for `requireAdmin()`.
 - [ ] Add one helper for `requireAuthenticatedUser()`.
-- [ ] Add one helper for `requireEditorOrAdmin()` for directory editing routes.
+- [x] Add one helper for `requireEditorOrAdmin()` for directory editing routes.
 
 ## 3. Protect The Admin Surface
 
@@ -61,8 +61,8 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
   - invalid credentials
   - inactive user
   - unexpected server failure
-- [ ] Redirect authenticated users to `/admin` after login without using raw `window.location`.
-- [ ] Redirect already-authenticated users away from `/login` on the server.
+- [x] Redirect authenticated users to `/admin` after login without using raw `window.location`.
+- [x] Redirect already-authenticated users away from `/login` on the server.
 - [ ] Add loading/disabled states consistently across login/logout actions.
 
 ## 5. Lock Down The User Model
@@ -109,7 +109,7 @@ This repo is still a public, read-only Next.js app backed by Airtable. Auth is n
   - edit role
   - activate/deactivate user
   - delete user
-- [ ] Wire create-user into the UI with a real form/modal/drawer.
+- [x] Wire create-user into the UI with a real form/modal/drawer.
 - [ ] Add reset password flow.
 - [x] Validate:
   - unique email

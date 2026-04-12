@@ -13,6 +13,20 @@ export interface Person {
   photo: string | null
 }
 
+export interface CreatePersonInput {
+  fullName: string
+  email: string
+  phone: string
+  photo?: string | null
+}
+
+export interface UpdatePersonInput {
+  fullName?: string
+  email?: string
+  phone?: string
+  photo?: string | null
+}
+
 export interface DisplaySection {
   id: string
   label: string
@@ -35,6 +49,31 @@ export interface Membership {
 
 export interface MembershipWithPerson extends Membership {
   person: Person | null
+}
+
+export interface EditableMembership {
+  id: string
+  membershipName: string
+  role: string
+  isChair: boolean
+  order: number | null
+  groupId: string | null
+  groupName: string
+  displaySectionId: string | null
+  personId: string | null
+  personFullName: string
+  personEmail: string
+  personPhone: string
+  personPhoto: string | null
+}
+
+export interface UpdateEditableMembershipInput {
+  role?: string
+  isChair?: boolean
+  order?: number | null
+  personFullName?: string
+  personEmail?: string
+  personPhone?: string
 }
 
 export interface UnitPlacement {

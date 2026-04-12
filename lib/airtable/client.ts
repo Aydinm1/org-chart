@@ -11,6 +11,17 @@ interface AirtableListResponse<TFields> {
   offset?: string
 }
 
+interface AirtableRecordResponse<TFields> {
+  id: string
+  fields: TFields
+}
+
+interface AirtableAttachmentUploadPayload {
+  contentType: string
+  file: string
+  filename: string
+}
+
 interface FetchTableOptions {
   filterByFormula?: string
   revalidateSeconds?: number | false
@@ -21,6 +32,15 @@ const assertEnv = () => {
     throw new Error('Missing Airtable credentials. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID.')
   }
 }
+
+const buildTableUrl = (tableName: string, recordId?: string) => {
+  const encodedTable = encodeURIComponent(tableName)
+  const encodedRecordId = recordId ? `/${encodeURIComponent(recordId)}` : ''
+  return `${AIRTABLE_API_URL}/${AIRTABLE_BASE_ID}/${encodedTable}${encodedRecordId}`
+}
+
+const buildAttachmentUploadUrl = (recordId: string, fieldIdOrName: string) =>
+  `https://content.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(recordId)}/${encodeURIComponent(fieldIdOrName)}/uploadAttachment`
 
 export const toText = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
 
@@ -146,4 +166,75 @@ export const fetchAirtableRecords = async <TFields>(
   } while (offset)
 
   return collected
+}
+
+export const createAirtableRecord = async <TFields>(
+  tableName: string,
+  fields: TFields,
+): Promise<{ id: string; fields: TFields }> => {
+  assertEnv()
+
+  const response = await fetch(buildTableUrl(tableName), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fields }),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Airtable create for "${tableName}" failed with status ${response.status}.`)
+  }
+
+  return (await response.json()) as AirtableRecordResponse<TFields>
+}
+
+export const updateAirtableRecord = async <TFields>(
+  tableName: string,
+  recordId: string,
+  fields: Partial<TFields>,
+): Promise<{ id: string; fields: TFields }> => {
+  assertEnv()
+
+  const response = await fetch(buildTableUrl(tableName, recordId), {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fields }),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Airtable update for "${tableName}" failed with status ${response.status}.`)
+  }
+
+  return (await response.json()) as AirtableRecordResponse<TFields>
+}
+
+export const uploadAirtableAttachment = async (
+  recordId: string,
+  fieldIdOrName: string,
+  payload: AirtableAttachmentUploadPayload,
+) => {
+  assertEnv()
+
+  const response = await fetch(buildAttachmentUploadUrl(recordId, fieldIdOrName), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Airtable attachment upload failed with status ${response.status}.`)
+  }
+
+  return response.json()
 }
