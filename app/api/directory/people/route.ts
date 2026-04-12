@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { requireEditorOrAdmin } from '../../../../lib/auth/server'
+import { requireAuthenticatedUser, requireEditorOrAdmin } from '../../../../lib/auth/server'
 import { createEditablePerson, listEditablePeople } from '../../../../lib/airtable/editor'
 
 const mapAuthError = (error: unknown) => {
@@ -19,7 +19,7 @@ const mapAuthError = (error: unknown) => {
 
 export async function GET() {
   try {
-    await requireEditorOrAdmin()
+    await requireAuthenticatedUser()
 
     const people = await listEditablePeople()
 

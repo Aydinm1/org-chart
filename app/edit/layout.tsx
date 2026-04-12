@@ -1,5 +1,5 @@
 import {redirect} from 'next/navigation'
-import { requireEditorOrAdmin } from '../../lib/auth/server'
+import { requireAuthenticatedUser } from '../../lib/auth/server'
 
 export default async function EditLayout({
     children,
@@ -7,7 +7,7 @@ export default async function EditLayout({
     children: React.ReactNode
 }) {
     try {
-        await requireEditorOrAdmin()
+        await requireAuthenticatedUser()
         return <>{children}</>
     } catch (error) {
         if (error instanceof Error) {

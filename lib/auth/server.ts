@@ -55,6 +55,16 @@ export async function requireAdmin() {
     return user;
 }
 
+export async function requireAuthenticatedUser() {
+    const user = await getCurrentUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    return user;
+}
+
 export async function requireEditorOrAdmin() {
     const user = await getCurrentUser();
 

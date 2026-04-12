@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import ChangePasswordButton from '../../components/auth/ChangePasswordButton'
 import LogoutButton from '../../components/auth/LogoutButton'
 import UsersTable from '../../components/admin/UsersTable'
 
@@ -20,6 +22,13 @@ export default function AdminPage() {
               </p>
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
+              <Link
+                href="/edit"
+                className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-white/80 px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-white"
+              >
+                Open Editor
+              </Link>
+              <ChangePasswordButton />
               <LogoutButton />
             </div>
           </div>

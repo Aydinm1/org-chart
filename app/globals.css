@@ -303,7 +303,7 @@ button {
   height: 100%;
   overflow: hidden;
   border-radius: 22px;
-  border: 1px solid color-mix(in srgb, var(--color-teal) 18%, var(--color-gold));
+  border: 1px solid color-mix(in srgb, var(--color-teal) 20%, var(--color-gold));
   transition:
     transform 220ms ease,
     border-color 220ms ease,
@@ -318,7 +318,7 @@ button {
   inset: 0;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--color-white) 20%, transparent), transparent 32%),
-    radial-gradient(140% 90% at 0% 0%, color-mix(in srgb, var(--color-teal) 7%, transparent), transparent 54%);
+    radial-gradient(140% 90% at 0% 0%, color-mix(in srgb, var(--color-teal) 10%, transparent), transparent 54%);
   pointer-events: none;
 }
 
@@ -329,7 +329,7 @@ button {
   width: 3.3rem;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 88%, transparent), color-mix(in srgb, var(--color-gold) 76%, transparent));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 78%, transparent), color-mix(in srgb, var(--color-gold) 64%, transparent));
   pointer-events: none;
 }
 
@@ -355,7 +355,7 @@ button {
   font-weight: 700;
   line-height: 1.06;
   letter-spacing: -0.03em;
-  color: color-mix(in srgb, var(--color-teal) 96%, black 4%);
+  color: color-mix(in srgb, var(--color-teal) 90%, black 4%);
   text-wrap: balance;
 }
 
@@ -363,7 +363,7 @@ button {
   max-width: 16rem;
   font-size: 0.95rem;
   line-height: 1.5;
-  color: color-mix(in srgb, var(--color-teal) 78%, var(--color-cream));
+  color: color-mix(in srgb, var(--color-teal) 76%, var(--color-cream));
   text-wrap: balance;
 }
 
@@ -381,7 +381,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: color-mix(in srgb, var(--color-teal) 94%, var(--color-gold));
+  color: color-mix(in srgb, var(--color-teal) 88%, var(--color-gold));
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -396,10 +396,10 @@ button {
 
 .root-stage-card--context {
   background:
-    radial-gradient(100% 100% at 100% 0%, color-mix(in srgb, var(--color-gold) 8%, transparent), transparent 46%),
+    radial-gradient(100% 100% at 100% 0%, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 46%),
     linear-gradient(180deg, color-mix(in srgb, var(--color-white) 66%, var(--color-cream)), color-mix(in srgb, var(--color-white) 32%, var(--color-cream)));
   box-shadow:
-    0 18px 30px -24px color-mix(in srgb, var(--color-teal) 18%, transparent),
+    0 18px 30px -24px color-mix(in srgb, var(--color-teal) 20%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--color-white) 68%, transparent);
 }
 
@@ -409,12 +409,12 @@ button {
 
 .root-stage-card--continuation {
   background:
-    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--color-teal) 14%, transparent), transparent 42%),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-white) 62%, var(--color-mist)), color-mix(in srgb, var(--color-white) 28%, var(--color-mist)));
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--color-teal) 10%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-white) 72%, var(--color-cream)), color-mix(in srgb, var(--color-white) 30%, var(--color-mist)));
   box-shadow:
     0 20px 32px -24px color-mix(in srgb, var(--color-teal) 24%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--color-white) 72%, transparent);
-  border-color: color-mix(in srgb, var(--color-teal) 28%, var(--color-gold));
+  border-color: color-mix(in srgb, var(--color-teal) 26%, var(--color-gold));
 }
 
 .root-stage-card--continuation .root-stage-card__footer {

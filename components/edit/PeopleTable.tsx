@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import DirectoryCard from '../directory/DirectoryCard'
-import type { EditableMembership } from '../../lib/airtable/types'
+import type { EditableGroupOption, EditableMembership } from '../../lib/airtable/types'
 import type { DirectoryCardViewModel } from '../../lib/directory/types'
 
 type DraftMemberships = Record<
@@ -15,7 +15,11 @@ type DraftMemberships = Record<
   >
 >
 
-export default function PeopleTable() {
+interface PeopleTableProps {
+  canEdit: boolean
+}
+
+export default function PeopleTable({ canEdit }: PeopleTableProps) {
   const [memberships, setMemberships] = useState<EditableMembership[]>([])
   const [editedMemberships, setEditedMemberships] = useState<DraftMemberships>({})
   const [loading, setLoading] = useState(false)
@@ -25,6 +29,19 @@ export default function PeopleTable() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all')
   const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null)
   const [uploadingMembershipId, setUploadingMembershipId] = useState<string | null>(null)
+  const [groupOptions, setGroupOptions] = useState<EditableGroupOption[]>([])
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newCard, setNewCard] = useState({
+    groupId: '',
+    displaySectionId: '',
+    role: '',
+    isChair: false,
+    order: '',
+    personFullName: '',
+    personEmail: '',
+    personPhone: '',
+  })
 
   const getMemberships = async () => {
     try {
@@ -45,6 +62,7 @@ export default function PeopleTable() {
       }
 
       setMemberships(data.memberships)
+      setGroupOptions(data.groups ?? [])
     } catch (fetchError) {
       console.error('Error fetching memberships:', fetchError)
       setError('An unexpected error occurred while fetching memberships. Please try again.')
@@ -156,17 +174,20 @@ export default function PeopleTable() {
   }, [])
 
   const availableGroups = useMemo(() => {
-    const groups = memberships
-      .filter((membership) => membership.groupId && membership.groupName)
-      .map((membership) => ({
-        id: membership.groupId as string,
-        name: membership.groupName,
-      }))
+    return groupOptions
+  }, [groupOptions])
 
-    return [...new Map(groups.map((group) => [group.id, group])).values()].sort((left, right) =>
-      left.name.localeCompare(right.name),
-    )
-  }, [memberships])
+  const selectedGroupSections = useMemo(() => {
+    if (newCard.groupId) {
+      return groupOptions.find((group) => group.id === newCard.groupId)?.sections ?? []
+    }
+
+    if (selectedGroupId !== 'all') {
+      return groupOptions.find((group) => group.id === selectedGroupId)?.sections ?? []
+    }
+
+    return []
+  }, [groupOptions, newCard.groupId, selectedGroupId])
 
   const filteredMemberships = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -243,6 +264,94 @@ export default function PeopleTable() {
     setSelectedMembershipId(filteredMemberships[nextIndex].id)
   }
 
+  const handleCreateCard = async () => {
+    setError(null)
+    setSaveMessage(null)
+
+    const groupId = newCard.groupId || (selectedGroupId !== 'all' ? selectedGroupId : '')
+
+    if (!groupId) {
+      setError('Choose a group')
+      return
+    }
+
+    if (!newCard.displaySectionId) {
+      setError('Choose a display section')
+      return
+    }
+
+    if (!newCard.role.trim()) {
+      setError('Role is required')
+      return
+    }
+
+    if (!newCard.personFullName.trim()) {
+      setError('Name is required')
+      return
+    }
+
+    try {
+      setIsCreating(true)
+
+      const response = await fetch('/api/directory/memberships', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupId,
+          displaySectionId: newCard.displaySectionId,
+          role: newCard.role,
+          isChair: newCard.isChair,
+          order: newCard.order === '' ? null : Number(newCard.order),
+          personFullName: newCard.personFullName,
+          personEmail: newCard.personEmail,
+          personPhone: newCard.personPhone,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || 'Failed to create card')
+        return
+      }
+
+      setMemberships((prevMemberships) =>
+        [...prevMemberships, data.membership].sort((left, right) => {
+          const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER
+          const rightOrder = right.order ?? Number.MAX_SAFE_INTEGER
+
+          if (leftOrder !== rightOrder) {
+            return leftOrder - rightOrder
+          }
+
+          return (left.personFullName || left.membershipName || left.role).localeCompare(
+            right.personFullName || right.membershipName || right.role,
+          )
+        }),
+      )
+      setSelectedGroupId(groupId)
+      setSelectedMembershipId(data.membership.id)
+      setNewCard({
+        groupId: '',
+        displaySectionId: '',
+        role: '',
+        isChair: false,
+        order: '',
+        personFullName: '',
+        personEmail: '',
+        personPhone: '',
+      })
+      setIsCreateOpen(false)
+      setSaveMessage('Card created')
+    } catch (createError) {
+      console.error('Error creating card:', createError)
+      setError('An unexpected error occurred while creating the card. Please try again.')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
   return (
     <section className="rounded-[34px] border border-[color:var(--color-border)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-white)_84%,var(--color-cream)),color-mix(in_srgb,var(--color-white)_54%,var(--color-cream)))] p-5 shadow-[0_28px_60px_-42px_color-mix(in_srgb,var(--color-teal)_28%,transparent)] sm:p-6">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -302,23 +411,40 @@ export default function PeopleTable() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105"
-            onClick={handleSaveAll}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            className="rounded-full border border-[color:var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-surface-soft)]"
-            onClick={() => {
-              setEditedMemberships({})
-              setSaveMessage('Drafts cleared')
-            }}
-          >
-            Discard
-          </button>
+          {canEdit ? (
+            <>
+              <button
+                type="button"
+                className="rounded-full border border-[color:var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-surface-soft)]"
+                onClick={() => {
+                  setError(null)
+                  setSaveMessage(null)
+                  setNewCard((prev) => ({
+                    ...prev,
+                    groupId: selectedGroupId !== 'all' ? selectedGroupId : prev.groupId,
+                    displaySectionId: '',
+                  }))
+                  setIsCreateOpen((prev) => !prev)
+                }}
+              >
+                {isCreateOpen ? 'Close' : 'Add Card'}
+              </button>
+              <button
+                type="button"
+                className="rounded-full border border-[color:var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-surface-soft)]"
+                onClick={() => {
+                  setEditedMemberships({})
+                  setSaveMessage('Drafts cleared')
+                }}
+              >
+                Discard
+              </button>
+            </>
+          ) : (
+            <span className="rounded-full border border-[color:var(--color-border)] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--color-ink-soft)]">
+              Read only
+            </span>
+          )}
         </div>
       </div>
 
@@ -331,6 +457,115 @@ export default function PeopleTable() {
       {saveMessage ? (
         <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {saveMessage}
+        </div>
+      ) : null}
+
+      {canEdit && isCreateOpen ? (
+        <div className="mb-5 grid gap-3 rounded-[28px] border border-[color:var(--color-border)] bg-white p-4 md:grid-cols-2 xl:grid-cols-4">
+          <select
+            value={newCard.groupId || (selectedGroupId !== 'all' ? selectedGroupId : '')}
+            onChange={(event) =>
+              setNewCard((prev) => ({
+                ...prev,
+                groupId: event.target.value,
+                displaySectionId: '',
+              }))
+            }
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          >
+            <option value="">Choose group</option>
+            {groupOptions.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={newCard.displaySectionId}
+            onChange={(event) =>
+              setNewCard((prev) => ({
+                ...prev,
+                displaySectionId: event.target.value,
+              }))
+            }
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          >
+            <option value="">Choose section</option>
+            {selectedGroupSections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {section.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Role"
+            value={newCard.role}
+            onChange={(event) => setNewCard((prev) => ({ ...prev, role: event.target.value }))}
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          />
+
+          <input
+            type="number"
+            placeholder="Order"
+            value={newCard.order}
+            onChange={(event) => setNewCard((prev) => ({ ...prev, order: event.target.value }))}
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          />
+
+          <input
+            type="text"
+            placeholder="Name"
+            value={newCard.personFullName}
+            onChange={(event) =>
+              setNewCard((prev) => ({ ...prev, personFullName: event.target.value }))
+            }
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={newCard.personEmail}
+            onChange={(event) =>
+              setNewCard((prev) => ({ ...prev, personEmail: event.target.value }))
+            }
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          />
+
+          <input
+            type="text"
+            placeholder="Phone"
+            value={newCard.personPhone}
+            onChange={(event) =>
+              setNewCard((prev) => ({ ...prev, personPhone: event.target.value }))
+            }
+            className="rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+          />
+
+          <label className="inline-flex items-center gap-2 rounded-2xl border border-[color:var(--color-border)] px-4 py-3 text-sm font-medium text-[color:var(--color-ink)]">
+            <input
+              type="checkbox"
+              checked={newCard.isChair}
+              onChange={(event) =>
+                setNewCard((prev) => ({ ...prev, isChair: event.target.checked }))
+              }
+            />
+            Chair
+          </label>
+
+          <div className="md:col-span-2 xl:col-span-4">
+            <button
+              type="button"
+              disabled={isCreating}
+              onClick={handleCreateCard}
+              className="rounded-full bg-[color:var(--color-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:opacity-60"
+            >
+              {isCreating ? 'Creating...' : 'Create Card'}
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -364,8 +599,8 @@ export default function PeopleTable() {
                 return (
                   <button
                     key={membership.id}
-                    type="button"
-                    onClick={() => setSelectedMembershipId(membership.id)}
+                  type="button"
+                  onClick={() => setSelectedMembershipId(membership.id)}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       isSelected
                         ? 'border-[color:var(--color-border-strong)] bg-white shadow-[0_16px_30px_-24px_color-mix(in_srgb,var(--color-teal)_30%,transparent)]'
@@ -447,13 +682,24 @@ export default function PeopleTable() {
         </section>
 
         <aside className="rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] p-5">
-          <div className="mb-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-accent)]">
-              Quick Edit
-            </p>
-            <h3 className="mt-2 text-xl font-bold text-[color:var(--color-ink)]">
-              {selectedMembership ? 'Selected card' : 'No selection'}
-            </h3>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-accent)]">
+                Quick Edit
+              </p>
+              <h3 className="mt-2 text-xl font-bold text-[color:var(--color-ink)]">
+                {selectedMembership ? 'Selected card' : 'No selection'}
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              disabled={!canEdit || pendingChanges === 0}
+              onClick={handleSaveAll}
+              className="rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Save
+            </button>
           </div>
 
           {selectedMembership && selectedMembershipId ? (
@@ -468,6 +714,7 @@ export default function PeopleTable() {
                   onChange={(event) =>
                     updateDraft(selectedMembershipId, { personFullName: event.target.value })
                   }
+                  disabled={!canEdit}
                   className="w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
                 />
               </div>
@@ -482,6 +729,7 @@ export default function PeopleTable() {
                   onChange={(event) =>
                     updateDraft(selectedMembershipId, { personEmail: event.target.value })
                   }
+                  disabled={!canEdit}
                   className="w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
                 />
               </div>
@@ -496,6 +744,7 @@ export default function PeopleTable() {
                   onChange={(event) =>
                     updateDraft(selectedMembershipId, { personPhone: event.target.value })
                   }
+                  disabled={!canEdit}
                   className="w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
                 />
               </div>
@@ -509,6 +758,7 @@ export default function PeopleTable() {
                     type="text"
                     value={selectedDraft?.role ?? selectedMembership.role}
                     onChange={(event) => updateDraft(selectedMembershipId, { role: event.target.value })}
+                    disabled={!canEdit}
                     className="w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
                   />
                 </div>
@@ -520,6 +770,7 @@ export default function PeopleTable() {
                     onChange={(event) =>
                       updateDraft(selectedMembershipId, { isChair: event.target.checked })
                     }
+                    disabled={!canEdit}
                   />
                   Chair
                 </label>
@@ -537,36 +788,39 @@ export default function PeopleTable() {
                       order: event.target.value === '' ? null : Number(event.target.value),
                     })
                   }
+                  disabled={!canEdit}
                   className="w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
                 />
               </div>
 
-              <div className="flex items-center gap-3">
-                <label
-                  className={`inline-flex cursor-pointer items-center rounded-full px-4 py-2 text-sm font-semibold ${
-                    uploadingMembershipId === selectedMembershipId
-                      ? 'bg-[color:var(--color-surface-soft)] text-[color:var(--color-ink-soft)]'
-                      : 'bg-[color:var(--color-accent)] text-white'
-                  }`}
-                >
-                  {uploadingMembershipId === selectedMembershipId ? 'Uploading...' : 'Upload Photo'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={uploadingMembershipId === selectedMembershipId || !selectedMembership.personId}
-                    onChange={(event) =>
-                      selectedMembership.personId
-                        ? handlePhotoUpload(selectedMembershipId, selectedMembership.personId, event)
-                        : undefined
-                    }
-                  />
-                </label>
+              {canEdit ? (
+                <div className="flex items-center gap-3">
+                  <label
+                    className={`inline-flex cursor-pointer items-center rounded-full px-4 py-2 text-sm font-semibold ${
+                      uploadingMembershipId === selectedMembershipId
+                        ? 'bg-[color:var(--color-surface-soft)] text-[color:var(--color-ink-soft)]'
+                        : 'bg-[color:var(--color-accent)] text-white'
+                    }`}
+                  >
+                    {uploadingMembershipId === selectedMembershipId ? 'Uploading...' : 'Upload Photo'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingMembershipId === selectedMembershipId || !selectedMembership.personId}
+                      onChange={(event) =>
+                        selectedMembership.personId
+                          ? handlePhotoUpload(selectedMembershipId, selectedMembership.personId, event)
+                          : undefined
+                      }
+                    />
+                  </label>
 
-                <span className="text-xs text-[color:var(--color-ink-soft)]">
-                  {selectedMembership.personPhoto ? 'Photo set' : 'No photo'}
-                </span>
-              </div>
+                  <span className="text-xs text-[color:var(--color-ink-soft)]">
+                    {selectedMembership.personPhoto ? 'Photo set' : 'No photo'}
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-white px-4 py-6 text-sm text-[color:var(--color-ink-soft)]">

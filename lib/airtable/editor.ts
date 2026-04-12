@@ -8,7 +8,9 @@ import {
 } from './client'
 import { fetchGroupsByIds, fetchPeopleByIds } from './repository'
 import type {
+  CreateEditableMembershipInput,
   CreatePersonInput,
+  EditableGroupOption,
   EditableMembership,
   Membership,
   Person,
@@ -19,6 +21,8 @@ import type {
 const TABLES = {
   people: 'People',
   memberships: 'Memberships',
+  displaySections: 'Display Sections',
+  groups: 'Groups',
 } as const
 
 interface PersonFields {
@@ -49,9 +53,25 @@ interface MembershipFields {
 }
 
 interface WritableMembershipFields {
+  'Membership Name'?: string
+  Person?: string[]
+  Group?: string[]
+  'Display Section'?: string[]
   Role?: string
   Order?: number | null
   'Is Chair'?: boolean
+}
+
+interface GroupFields {
+  'Group Name'?: unknown
+}
+
+interface DisplaySectionFields {
+  'Display Section Label'?: unknown
+  'Display Section'?: unknown
+  Name?: unknown
+  Group?: unknown
+  Groups?: unknown
 }
 
 const getPhotoUrl = (value: unknown): string | null => {
@@ -146,6 +166,20 @@ const mapMembership = (record: { id: string; fields: MembershipFields }): Member
   displaySectionId: firstLinkedId(record.fields['Display Section'], record.fields['Display Sections']),
   order: toNullableNumber(record.fields.Order),
   isChair: toBoolean(record.fields['Is Chair']),
+})
+
+const mapGroup = (record: { id: string; fields: GroupFields }) => ({
+  id: record.id,
+  name: toText(record.fields['Group Name']),
+})
+
+const mapDisplaySection = (record: { id: string; fields: DisplaySectionFields }) => ({
+  id: record.id,
+  name:
+    toText(record.fields['Display Section Label']) ||
+    toText(record.fields['Display Section']) ||
+    toText(record.fields.Name),
+  groupId: firstLinkedId(record.fields.Group, record.fields.Groups),
 })
 
 const sortMemberships = (memberships: EditableMembership[]) =>
@@ -269,6 +303,12 @@ export const listEditableMemberships = async (): Promise<EditableMembership[]> =
   ])
   const peopleById = new Map(people.map((person) => [person.id, person]))
   const groupsById = new Map(groups.map((group) => [group.id, group]))
+  const displaySectionRecords = await fetchAirtableRecords<DisplaySectionFields>(TABLES.displaySections, {
+    revalidateSeconds: false,
+  })
+  const displaySectionsById = new Map(
+    displaySectionRecords.map(mapDisplaySection).map((section) => [section.id, section]),
+  )
 
   return sortMemberships(
     memberships.map((membership) => {
@@ -283,6 +323,9 @@ export const listEditableMemberships = async (): Promise<EditableMembership[]> =
         groupId: membership.groupId,
         groupName: membership.groupId ? groupsById.get(membership.groupId)?.name ?? '' : '',
         displaySectionId: membership.displaySectionId,
+        displaySectionName: membership.displaySectionId
+          ? displaySectionsById.get(membership.displaySectionId)?.name ?? ''
+          : '',
         personId: membership.personId,
         personFullName: person?.fullName ?? '',
         personEmail: person?.email ?? '',
@@ -347,4 +390,61 @@ export const updateEditableMembership = async (
   }
 
   return updatedMembership
+}
+
+export const listEditableGroupOptions = async (): Promise<EditableGroupOption[]> => {
+  const [groupRecords, displaySectionRecords] = await Promise.all([
+    fetchAirtableRecords<GroupFields>(TABLES.groups, {
+      revalidateSeconds: false,
+    }),
+    fetchAirtableRecords<DisplaySectionFields>(TABLES.displaySections, {
+      revalidateSeconds: false,
+    }),
+  ])
+
+  const groups = groupRecords.map(mapGroup).sort((left, right) => left.name.localeCompare(right.name))
+  const sections = displaySectionRecords.map(mapDisplaySection)
+
+  return groups.map((group) => ({
+    id: group.id,
+    name: group.name,
+    sections: sections
+      .filter((section) => section.groupId === group.id)
+      .map((section) => ({ id: section.id, name: section.name }))
+      .sort((left, right) => left.name.localeCompare(right.name)),
+  }))
+}
+
+export const createEditableMembership = async (
+  input: CreateEditableMembershipInput,
+): Promise<EditableMembership> => {
+  const person = await createEditablePerson({
+    fullName: input.personFullName,
+    email: input.personEmail ?? '',
+    phone: input.personPhone ?? '',
+  })
+
+  await createAirtableRecord<WritableMembershipFields>(TABLES.memberships, {
+    'Membership Name': input.personFullName.trim(),
+    Person: [person.id],
+    Group: [input.groupId],
+    'Display Section': [input.displaySectionId],
+    Role: input.role.trim(),
+    Order: input.order ?? null,
+    'Is Chair': input.isChair ?? false,
+  })
+
+  const memberships = await listEditableMemberships()
+  const createdMembership = memberships.find(
+    (membership) =>
+      membership.personId === person.id &&
+      membership.groupId === input.groupId &&
+      membership.displaySectionId === input.displaySectionId,
+  )
+
+  if (!createdMembership) {
+    throw new Error('Created membership could not be loaded.')
+  }
+
+  return createdMembership
 }

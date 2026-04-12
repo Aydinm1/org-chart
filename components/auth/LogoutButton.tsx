@@ -37,11 +37,15 @@ export default function LogoutButton() {
     }
 
     return (
-        <div className="flex flex-col items-center">
-        <button onClick={handleLogout} disabled={isSubmitting} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+        <div className="flex flex-col items-end gap-2">
+        <button
+          onClick={handleLogout}
+          disabled={isSubmitting}
+          className="inline-flex items-center rounded-full border border-[color:var(--color-border)] bg-white/80 px-5 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
             {isSubmitting ? 'Logging out...' : 'Logout'}
         </button>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
     )
 }

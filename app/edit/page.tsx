@@ -1,7 +1,12 @@
+import { getCurrentUser } from '../../lib/auth/server'
+import ChangePasswordButton from '../../components/auth/ChangePasswordButton'
 import LogoutButton from '../../components/auth/LogoutButton'
 import PeopleTable from '../../components/edit/PeopleTable'
 
-export default function EditPage() {
+export default async function EditPage() {
+  const user = await getCurrentUser()
+  const canEdit = user?.role === 'admin' || user?.role === 'editor'
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-white)_22%,transparent),transparent_24%),linear-gradient(180deg,var(--color-bg)_0%,var(--color-bg-deep)_100%)] px-6 py-8 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
@@ -17,14 +22,20 @@ export default function EditPage() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[color:var(--color-ink-soft)] sm:text-base">
                 Update directory cards, contact lines, and photos.
               </p>
+              {!canEdit ? (
+                <p className="mt-3 inline-flex w-fit rounded-full border border-[color:var(--color-border)] bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--color-ink-soft)]">
+                  Viewer mode
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
+              <ChangePasswordButton />
               <LogoutButton />
             </div>
           </div>
         </section>
 
-        <PeopleTable />
+        <PeopleTable canEdit={canEdit} />
       </div>
     </main>
   )

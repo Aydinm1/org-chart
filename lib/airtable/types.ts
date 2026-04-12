@@ -60,11 +60,34 @@ export interface EditableMembership {
   groupId: string | null
   groupName: string
   displaySectionId: string | null
+  displaySectionName: string
   personId: string | null
   personFullName: string
   personEmail: string
   personPhone: string
   personPhoto: string | null
+}
+
+export interface EditableDisplaySectionOption {
+  id: string
+  name: string
+}
+
+export interface EditableGroupOption {
+  id: string
+  name: string
+  sections: EditableDisplaySectionOption[]
+}
+
+export interface CreateEditableMembershipInput {
+  groupId: string
+  displaySectionId: string
+  role: string
+  isChair?: boolean
+  order?: number | null
+  personFullName: string
+  personEmail?: string
+  personPhone?: string
 }
 
 export interface UpdateEditableMembershipInput {
