@@ -31,7 +31,7 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
       ? card.badge || 'Directory'
       : card.badge || ''
   const actionText = card.destinationGroupId ? 'View directory' : 'View person'
-  const imageSrc = card.personId ? `/api/people/${card.personId}/photo` : card.image
+  const imageSrc = card.image || (card.personId ? `/api/people/${card.personId}/photo` : undefined)
 
   const content = (
     <article className="directory-card w-full max-w-[248px]">
@@ -59,7 +59,13 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
           <div className={`shrink-0 overflow-hidden rounded-full bg-[var(--color-card-avatar-bg)] ring-2 ring-[var(--color-card-avatar-ring)] ${
             isOverviewGroupCard ? 'mt-1.5 h-[60px] w-[60px]' : 'mt-2.5 h-[72px] w-[72px]'
           }`}>
-            <img src={imageSrc ?? card.image ?? undefined} alt={card.title} className="h-full w-full object-cover" />
+            <img
+              src={imageSrc}
+              alt={card.title}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           </div>
         ) : (
           <div className={`flex shrink-0 items-center justify-center rounded-full bg-[var(--color-card-avatar-bg)] font-bold text-[var(--color-card-avatar-text)] ring-2 ring-[var(--color-card-avatar-ring)] ${
@@ -112,7 +118,7 @@ export default function DirectoryCard({ card }: DirectoryCardProps) {
   }
 
   return (
-    <Link href={`/groups/${card.destinationGroupId}`} prefetch className="block h-full w-full max-w-[248px]">
+    <Link href={`/groups/${card.destinationGroupId}`} prefetch={false} className="block h-full w-full max-w-[248px]">
       {content}
     </Link>
   )

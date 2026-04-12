@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         const tempPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(tempPassword,10);
 
-        const [result] = await pool.query<ResultSetHeader>('INSERT INTO users (name, email, passwordHash, role) VALUES (?,?,?,?)', [name, email, hashedPassword, role])
+        await pool.query<ResultSetHeader>('INSERT INTO users (name, email, passwordHash, role) VALUES (?,?,?,?)', [name, email, hashedPassword, role])
         return NextResponse.json({ success: true, message: 'User created successfully', "temporaryPassword": tempPassword }, { status: 201 })
         
     } catch (error) {

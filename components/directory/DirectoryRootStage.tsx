@@ -57,7 +57,7 @@ export default function DirectoryRootStage({ cards }: DirectoryRootStageProps) {
           }
 
           return (
-            <Link key={card.id} href={`/groups/${card.destinationGroupId}`} prefetch className="root-stage-link">
+            <Link key={card.id} href={`/groups/${card.destinationGroupId}`} prefetch={false} className="root-stage-link">
               {body}
             </Link>
           )

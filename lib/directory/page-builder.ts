@@ -187,16 +187,17 @@ export const loadGroupPage = async (groupIdOrName: string): Promise<GroupPageVie
     placementsBySectionId.set(placement.displaySectionId, sectionPlacements)
   }
 
-  const representativeMembershipsByGroupId = await fetchRepresentativeChairMemberships(
-    unitPlacements
-      .filter((placement) => placement.useRepresentativeCard && placement.childGroupId)
-      .map((placement) => placement.childGroupId as string),
-  )
-  const contentfulGroupIds = await fetchContentfulGroupIds(
-    unitPlacements
-      .map((placement) => placement.childGroupId)
-      .filter((groupId): groupId is string => Boolean(groupId)),
-  )
+  const representativeGroupIds = unitPlacements
+    .filter((placement) => placement.useRepresentativeCard && placement.childGroupId)
+    .map((placement) => placement.childGroupId as string)
+  const childGroupIds = unitPlacements
+    .map((placement) => placement.childGroupId)
+    .filter((groupId): groupId is string => Boolean(groupId))
+
+  const [representativeMembershipsByGroupId, contentfulGroupIds] = await Promise.all([
+    fetchRepresentativeChairMemberships(representativeGroupIds),
+    fetchContentfulGroupIds(childGroupIds),
+  ])
 
   const sections: DirectorySectionViewModel[] = []
 
