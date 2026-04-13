@@ -8,7 +8,7 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-white)_22%,transparent),transparent_24%),linear-gradient(180deg,var(--color-bg)_0%,var(--color-bg-deep)_100%)] px-6 py-8 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <div className="flex items-start justify-between gap-4">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-4">
           <section className="min-w-0 flex-1 overflow-hidden rounded-[32px] border border-[color:var(--color-border-strong)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-white)_74%,var(--color-cream)),color-mix(in_srgb,var(--color-white)_24%,var(--color-cream)))] px-6 py-7 shadow-[0_28px_70px_-44px_color-mix(in_srgb,var(--color-teal)_32%,transparent)] sm:px-8 sm:py-8">
             <div className="flex flex-col gap-6">
               <div className="max-w-3xl">
@@ -26,7 +26,7 @@ export default async function AdminPage() {
             </div>
           </section>
           {currentUser ? (
-            <div className="shrink-0 pt-3">
+            <div className="justify-self-end md:pt-4 lg:pt-5">
               <AccountMenu currentUser={currentUser} />
             </div>
           ) : null}

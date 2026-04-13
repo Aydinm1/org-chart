@@ -223,6 +223,13 @@ export default function AccountMenu({ currentUser }: AccountMenuProps) {
               >
                 Change Password
               </button>
+              <Link
+                href="/"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-white"
+              >
+                Main Page
+              </Link>
               {canOpenEditor ? (
                 <Link
                   href="/edit"
