@@ -24,7 +24,7 @@ export default function LogoutButton() {
                 return
               }
 
-              router.replace('/login')
+              router.replace(withBasePath('/login'))
               router.refresh()
 
         } catch(error){

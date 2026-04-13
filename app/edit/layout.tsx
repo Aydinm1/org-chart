@@ -1,5 +1,6 @@
 import {redirect} from 'next/navigation'
 import { requireAuthenticatedUser } from '../../lib/auth/server'
+import { withBasePath } from '../../lib/base-path'
 
 export default async function EditLayout({
     children,
@@ -12,10 +13,10 @@ export default async function EditLayout({
     } catch (error) {
         if (error instanceof Error) {
             if (error.message === 'Unauthorized') {
-                redirect('/login')
+                redirect(withBasePath('/login'))
             }
             if (error.message === 'Forbidden') {
-                redirect('/')
+                redirect(withBasePath('/'))
             }
         }
         throw error
