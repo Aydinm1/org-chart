@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import './globals.css'
+import { withBasePath } from '../lib/base-path'
 
 export const metadata: Metadata = {
   title: 'Midwest Institutions Directory',
@@ -14,7 +15,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body
+        suppressHydrationWarning
+        style={
+          {
+            '--directory-bg-pattern': `url("${withBasePath('/assets/background.png')}")`,
+          } as React.CSSProperties
+        }
+      >
+        {children}
+      </body>
     </html>
   )
 }

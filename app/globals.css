@@ -80,7 +80,7 @@ button {
     radial-gradient(1100px 560px at 0% -4%, color-mix(in srgb, var(--color-gold) 8%, transparent), transparent 56%),
     radial-gradient(860px 460px at 100% 8%, color-mix(in srgb, var(--color-teal) 8%, transparent), transparent 62%),
     linear-gradient(180deg, color-mix(in srgb, var(--color-white) 28%, transparent), transparent),
-    url('../../../assets/background.png'),
+    var(--directory-bg-pattern),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
   background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat;
   background-position: top left, top right, top left, top left, top left;
