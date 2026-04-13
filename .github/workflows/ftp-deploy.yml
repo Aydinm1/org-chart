@@ -23,10 +23,10 @@ jobs:
         run: |
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             echo "APP_BASE_PATH=/org-chart" >> "$GITHUB_ENV"
-            echo "FTP_TARGET_DIR=org-chart-prod" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=home3/ninjapro/org-chart-prod" >> "$GITHUB_ENV"
           else
             echo "APP_BASE_PATH=/org-chart/dev" >> "$GITHUB_ENV"
-            echo "FTP_TARGET_DIR=org-chart-dev" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=home3/ninjapro/org-chart-dev" >> "$GITHUB_ENV"
           fi
 
       - name: Set up Node.js
