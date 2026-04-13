@@ -74,6 +74,5 @@ jobs:
           port: ${{ env.FTP_PORT }}
           protocol: ftp
           local-dir: ./deploy/
-          dangerous-clean-slate: true
           state-name: .ftp-deploy-sync-state-v2.json
           server-dir: ${{ env.FTP_TARGET_DIR }}/
