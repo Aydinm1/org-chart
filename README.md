@@ -41,10 +41,14 @@ The repo includes `.github/workflows/ftp-deploy.yml` with two deploy targets:
 
 Required GitHub repository secrets:
 
-- `FTP_SERVER`
-- `FTP_USERNAME`
-- `FTP_PASSWORD`
-- `FTP_PORT` (optional, defaults to `21`)
+- `FTP_DEV_SERVER`
+- `FTP_DEV_USERNAME`
+- `FTP_DEV_PASSWORD`
+- `FTP_DEV_PORT` (optional, defaults to `21`)
+- `FTP_PROD_SERVER`
+- `FTP_PROD_USERNAME`
+- `FTP_PROD_PASSWORD`
+- `FTP_PROD_PORT` (optional, defaults to `21`)
 - `AIRTABLE_API_KEY`
 - `AIRTABLE_BASE_ID`
 
@@ -60,6 +64,8 @@ FastComet Node Application settings should be:
 - Development application root: `org-chart-dev`
 - Development application URL: `https://your-domain.tld/org-chart/dev`
 - Application startup file: `server.js`
+
+The FTP accounts should be rooted directly at those app directories. With that setup, the workflow uploads to `/` for each branch-specific FTP account rather than trying to navigate from a shared FTP home.
 
 The deploy workflow also writes `tmp/restart.txt` on each upload so Passenger reloads the app after FTP deployment.
 

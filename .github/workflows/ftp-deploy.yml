@@ -23,10 +23,18 @@ jobs:
         run: |
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             echo "APP_BASE_PATH=/org-chart" >> "$GITHUB_ENV"
-            echo "FTP_TARGET_DIR=home3/ninjapro/org-chart-prod" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=/" >> "$GITHUB_ENV"
+            echo "FTP_SERVER=${{ secrets.FTP_PROD_SERVER }}" >> "$GITHUB_ENV"
+            echo "FTP_USERNAME=${{ secrets.FTP_PROD_USERNAME }}" >> "$GITHUB_ENV"
+            echo "FTP_PASSWORD=${{ secrets.FTP_PROD_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "FTP_PORT=${{ secrets.FTP_PROD_PORT || 21 }}" >> "$GITHUB_ENV"
           else
             echo "APP_BASE_PATH=/org-chart/dev" >> "$GITHUB_ENV"
-            echo "FTP_TARGET_DIR=home3/ninjapro/org-chart-dev" >> "$GITHUB_ENV"
+            echo "FTP_TARGET_DIR=/" >> "$GITHUB_ENV"
+            echo "FTP_SERVER=${{ secrets.FTP_DEV_SERVER || secrets.FTP_SERVER }}" >> "$GITHUB_ENV"
+            echo "FTP_USERNAME=${{ secrets.FTP_DEV_USERNAME || secrets.FTP_USERNAME }}" >> "$GITHUB_ENV"
+            echo "FTP_PASSWORD=${{ secrets.FTP_DEV_PASSWORD || secrets.FTP_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "FTP_PORT=${{ secrets.FTP_DEV_PORT || secrets.FTP_PORT || 21 }}" >> "$GITHUB_ENV"
           fi
 
       - name: Set up Node.js
@@ -60,10 +68,10 @@ jobs:
       - name: Upload over FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT || 21 }}
+          server: ${{ env.FTP_SERVER }}
+          username: ${{ env.FTP_USERNAME }}
+          password: ${{ env.FTP_PASSWORD }}
+          port: ${{ env.FTP_PORT }}
           protocol: ftp
           local-dir: ./deploy/
           dangerous-clean-slate: true
