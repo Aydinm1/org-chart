@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import ChangePasswordButton from '../../components/auth/ChangePasswordButton'
-import LogoutButton from '../../components/auth/LogoutButton'
+import AccountMenu from '../../components/auth/AccountMenu'
 import UsersTable from '../../components/admin/UsersTable'
+import { getCurrentUser } from '../../lib/auth/server'
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const currentUser = await getCurrentUser()
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-white)_22%,transparent),transparent_24%),linear-gradient(180deg,var(--color-bg)_0%,var(--color-bg-deep)_100%)] px-6 py-8 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
@@ -28,8 +30,7 @@ export default function AdminPage() {
               >
                 Open Editor
               </Link>
-              <ChangePasswordButton />
-              <LogoutButton />
+              {currentUser ? <AccountMenu currentUser={currentUser} /> : null}
             </div>
           </div>
         </section>

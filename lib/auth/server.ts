@@ -1,11 +1,11 @@
 import {cookies} from 'next/headers'
-import { AuthTokenPayload } from './types';
+import { AuthTokenPayload, AuthenticatedUser } from './types';
 import jwt from 'jsonwebtoken'
-import { UserRole, UserSummaryRow } from '../db/types';
+import { UserSummaryRow } from '../db/types';
 import pool from '../db';
 
 
-export async function getCurrentUser():Promise<{ userId: number, email: string, name: string, role: UserRole } | null> {
+export async function getCurrentUser():Promise<AuthenticatedUser | null> {
     const cookiestore = await cookies();
     const token = cookiestore.get('auth_token')?.value;
 

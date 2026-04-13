@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { AuthenticatedUser } from '../../lib/auth/types'
+import AccountMenu from '../auth/AccountMenu'
 import DirectoryBackButton from './DirectoryBackButton'
 import PageGraphic from './PageGraphic'
 
@@ -9,6 +11,7 @@ interface DirectoryShellProps {
   backHref?: string
   backLabel?: string
   variant?: 'default' | 'gateway'
+  currentUser?: AuthenticatedUser | null
   children: ReactNode
 }
 
@@ -19,10 +22,12 @@ export default function DirectoryShell({
   backHref,
   backLabel,
   variant = 'default',
+  currentUser,
   children,
 }: DirectoryShellProps) {
   const isGateway = variant === 'gateway'
   const hasBackButton = Boolean(backHref && backLabel)
+  const hasHeaderActions = hasBackButton || Boolean(currentUser)
 
   return (
     <main className={`directory-shell ${isGateway ? 'directory-shell--gateway' : ''} page-shell relative flex min-h-screen w-full flex-col overflow-x-clip`}>
@@ -31,7 +36,7 @@ export default function DirectoryShell({
         <div
           className={`mx-auto flex w-full flex-wrap gap-5 px-6 sm:px-8 lg:px-10 ${
             isGateway ? 'max-w-[1780px] py-8 sm:py-10 lg:py-11' : 'max-w-[1800px] py-8 sm:py-10 lg:py-11'
-          } ${hasBackButton ? 'items-center justify-between' : 'items-end justify-start'}`}
+          } ${hasHeaderActions ? 'items-center justify-between' : 'items-end justify-start'}`}
         >
           <div className="flex min-w-0 items-center gap-4">
             <div className="directory-brand-mark flex h-16 w-16 items-center justify-center rounded-full text-xl font-extrabold">
@@ -45,7 +50,12 @@ export default function DirectoryShell({
               ) : null}
             </div>
           </div>
-          {hasBackButton ? <DirectoryBackButton fallbackHref={backHref!} label={backLabel!} /> : null}
+          {hasHeaderActions ? (
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              {hasBackButton ? <DirectoryBackButton fallbackHref={backHref!} label={backLabel!} /> : null}
+              {currentUser ? <AccountMenu currentUser={currentUser} /> : null}
+            </div>
+          ) : null}
         </div>
       </header>
       <div className={`directory-shell__body relative mx-auto flex w-full flex-1 flex-col ${isGateway ? 'max-w-[1780px]' : 'max-w-[1800px]'}`}>

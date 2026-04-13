@@ -9,6 +9,13 @@ export type AuthTokenPayload = {
     exp?: number
 }
 
+export type AuthenticatedUser = {
+    userId: number
+    email: string
+    name: string
+    role: UserRole
+}
+
 export type UserSummary = {
     id: number
     email: string

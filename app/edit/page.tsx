@@ -1,6 +1,5 @@
 import { getCurrentUser } from '../../lib/auth/server'
-import ChangePasswordButton from '../../components/auth/ChangePasswordButton'
-import LogoutButton from '../../components/auth/LogoutButton'
+import AccountMenu from '../../components/auth/AccountMenu'
 import PeopleTable from '../../components/edit/PeopleTable'
 
 export default async function EditPage() {
@@ -29,8 +28,7 @@ export default async function EditPage() {
               ) : null}
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
-              <ChangePasswordButton />
-              <LogoutButton />
+              {user ? <AccountMenu currentUser={user} /> : null}
             </div>
           </div>
         </section>
