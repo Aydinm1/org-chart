@@ -36,7 +36,7 @@ export default function LoginForm() {
       const nextRole = data.user?.role as UserRole | undefined
       const nextPath = nextRole ? getPostLoginPath(nextRole) : '/edit'
 
-      router.replace(withBasePath(nextPath))
+      router.replace(nextPath)
       router.refresh()
     } catch (loginError) {
       console.error('Login error:', loginError)

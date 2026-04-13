@@ -1,6 +1,5 @@
 import {redirect} from 'next/navigation'
 import { requireAdmin } from '../../lib/auth/server'
-import { withBasePath } from '../../lib/base-path'
 
 export default async function AdminLayout({
     children,
@@ -13,10 +12,10 @@ export default async function AdminLayout({
     } catch (error) {
         if (error instanceof Error) {
             if (error.message === 'Unauthorized') {
-                redirect(withBasePath('/login'))
+                redirect('/login')
             }
             if (error.message === 'Forbidden') {
-                redirect(withBasePath('/'))
+                redirect('/')
             }
         }
         throw error
