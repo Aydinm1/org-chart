@@ -531,7 +531,7 @@ button {
 
 .directory-card {
   animation: card-in 440ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
-  will-change: transform, opacity;
+  will-change: auto;
 }
 
 .directory-card:nth-of-type(2n) {
@@ -592,6 +592,21 @@ button {
   .root-stage-link .root-stage-card__cta::after {
     transition: none;
   }
+}
+
+.directory-shell:not(.directory-shell--gateway) .directory-header,
+.directory-shell:not(.directory-shell--gateway) .directory-footer {
+  backdrop-filter: none;
+}
+
+.directory-shell:not(.directory-shell--gateway) .section-lane {
+  animation: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 520px;
+}
+
+.directory-shell:not(.directory-shell--gateway) .directory-card {
+  animation: none;
 }
 
 .board-surface {

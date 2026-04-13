@@ -2,15 +2,13 @@ import DirectoryShell from './DirectoryShell'
 import DirectoryBackButton from './DirectoryBackButton'
 import DirectorySection from './DirectorySection'
 import DirectorySurfacePanel from './DirectorySurfacePanel'
-import type { AuthenticatedUser } from '../../lib/auth/types'
 import type { GroupPageViewModel } from '../../lib/directory/types'
 
 interface DirectoryPageProps {
   page: GroupPageViewModel
-  currentUser?: AuthenticatedUser | null
 }
 
-export default function DirectoryPage({ page, currentUser }: DirectoryPageProps) {
+export default function DirectoryPage({ page }: DirectoryPageProps) {
   const hasAnyCards = page.sections.some((section) => section.cards.length > 0)
 
   return (
@@ -18,7 +16,6 @@ export default function DirectoryPage({ page, currentUser }: DirectoryPageProps)
       title={page.group.name}
       eyebrow={page.parentGroup ? page.parentGroup.name : 'Org Directory'}
       description="Sections and cards below are assembled from Display Sections, Memberships, and Unit Placements."
-      currentUser={currentUser}
     >
       <div className="mx-auto w-full max-w-[1780px] px-6 pt-8 sm:px-8 sm:pt-9 lg:px-10 lg:pt-10">
         <div>
